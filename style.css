@@ -1,56 +1,141 @@
-/* style.css */
+/* style.css (MSGAI-LOGOS 最終美学版) */
+:root {
+    --color-gold: #d4af37;
+    --color-bg: #000000;
+    --color-success-green: #00ff41; /* マトリックス・グリーン */
+    --color-alert-red: #ff4500;
+    --phi: 1.618;
+}
+
 body {
-    background-color: #000;
-    color: #d4af37;
-    font-family: 'Times New Roman', serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
+    background-color: var(--color-bg);
+    color: var(--color-gold);
+    font-family: 'Georgia', 'Times New Roman', serif;
     margin: 0;
-    overflow: hidden;
-}
-
-#console {
-    width: 90%;
-    max-width: 500px;
-    text-align: center;
-}
-
-#output {
-    min-height: 180px;
-    margin-bottom: 30px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    transition: opacity 0.3s ease;
+    height: 100vh;
+    overflow: hidden;
+    letter-spacing: 0.05em;
 }
 
-input {
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid #333;
-    color: #fff;
+/* 1. 統治ヘッダー */
+#sovereignty-header {
+    padding: 15px;
+    border-bottom: 1px solid #222;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.gold-text { color: var(--color-gold); font-weight: bold; }
+
+select {
+    background: #111;
+    color: var(--color-gold);
+    border: 1px solid #333;
+    font-size: 0.8rem;
+}
+
+/* 2. 緊張度モニター */
+#tension-monitor {
+    padding: 20px;
+    background: rgba(10, 10, 10, 0.8);
+}
+
+#tension_bar {
     width: 100%;
-    text-align: center;
-    outline: none;
-    font-size: 1.1rem;
-    padding: 10px 0;
+    height: 4px;
+    background: #222;
+    margin-top: 10px;
 }
 
-/* 多通貨リストの装飾 */
-.asset-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-top: 15px;
-    padding: 10px;
-    border-top: 1px solid #222;
-    font-family: monospace;
+#tension_level_display_bar {
+    height: 100%;
+    width: 0%;
+    background: var(--color-success-green);
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background 0.5s;
 }
 
-.asset-item {
+/* 3. 多通貨ポートフォリオ */
+#balance_display_container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 15px;
+    border-bottom: 1px solid #222;
+}
+
+.currency-badge {
+    border: 1px solid #333;
+    padding: 5px 10px;
+    border-radius: 4px;
     font-size: 0.75rem;
-    color: #aaa;
+    background: #050505;
+}
+
+/* 4. メインコンソール */
+#console-area {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.scroll-area {
+    flex-grow: 1;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    border-left: 2px solid #111;
+    padding-left: 15px;
+}
+
+.log-entry { margin-bottom: 8px; line-height: 1.4; }
+.log-success { color: var(--color-success-green); }
+.log-error { color: var(--color-alert-red); }
+.log-warning { color: #ffa500; }
+
+.status-box {
+    font-style: italic;
+    color: #888;
+    margin-bottom: 15px;
+    font-size: 0.8rem;
+}
+
+/* 5. 入力エリア */
+.input-container {
+    display: flex;
+    gap: 10px;
+}
+
+input#dialogue_input {
+    flex-grow: 1;
+    background: #0a0a0a;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 12px;
+    outline: none;
+}
+
+button {
+    background: #d4af37;
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: opacity 0.2s;
+}
+
+button:hover { opacity: 0.8; }
+button.danger { background: #444; color: #ccc; }
+
+/* 6. アニメーション */
+@keyframes pulse-tension {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
 }
