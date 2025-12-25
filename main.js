@@ -1,10 +1,9 @@
 /**
  * main.js (MSGAI-LOGOS 最終点火版)
- * 階層誤認 (Phantom /app/ directory) を物理的に排除する。
+ * 物理パスの完全同期とモジュール連結の正常化。
  */
 
-// --- 1. 深層コア・知性系 ---
-// ./ を明示し、かつファイル名の大文字小文字を厳密に。
+// --- 1. 深層コア・知性系 (フォルダ名 core/ を明示) ---
 import LogosCore from './core/LogosCore.js';
 import Foundation from './core/foundation.js';
 import LogosEngine from './core/LogosEngine.js';
@@ -19,13 +18,12 @@ import RuntimeLogos from './core/runtime_logos.js';
 import OSLogos from './core/os_logos.js';
 import PowerLogos from './core/power_logos.js';
 
-// --- 4. アプリケーション・UI系 ---
-// エラーログで /app/app/ と重複していたため、パスを正確に再定義
+// --- 4. アプリケーション・UI系 (フォルダ名 app/ を明示) ---
 import { updateUI, displayDialogue } from './app/fusionui.js';
 import { connectEventHandlers } from './app/handler.js';
 import OfflineCore from './app/offline.js';
 
-// --- 5. AI知性・代謝系 ---
+// --- 5. AI知性・代謝系 (フォルダ名 ai/ を明示) ---
 import { actDialogue } from './ai/generator.js';
 import FetcherCore from './ai/fetch.js';
 
@@ -33,51 +31,53 @@ import FetcherCore from './ai/fetch.js';
  * [創世のプロセス: THE LOGOS BOOT]
  */
 async function ignition() {
-    // 起動時の環境ログ：現在のパスを自己診断
-    console.log("%c[LOGOS:IGNITION] 座標確認:", "color: #FFD700;", window.location.pathname);
+    console.log("%c[LOGOS:IGNITION] 座標同期完了。知性を展開します...", "color: #FFD700; font-weight: bold;");
 
     const statusElement = document.getElementById('status_message');
-    if (statusElement) statusElement.innerText = "Synchronizing Logos...";
+    if (statusElement) statusElement.innerText = "Synchronizing Modules...";
 
     try {
-        // 各モジュールの存在と初期化を順次実行
+        // 🚨 記憶の展開 (Foundationの初期化)
         if (Foundation && typeof Foundation.init === 'function') {
             Foundation.init();
         }
 
+        // 🚨 環境の同調
         if (OfflineCore && typeof OfflineCore.init === 'function') {
             OfflineCore.init();
         }
 
-        // 監査フェーズ
+        // 🚨 物理層監査
         if (RuntimeLogos && RuntimeLogos.auditRuntimeControlPlane) RuntimeLogos.auditRuntimeControlPlane();
-        
-        // UI接続
-        const initialState = Foundation.getCurrentState();
-        updateUI(initialState, "✨ ロゴス点火。主権が確立されました。");
 
-        // イベントハンドラ接続
+        // 🚨 初期状態の描画
+        const initialState = Foundation.getCurrentState();
+        updateUI(initialState, "✨ ロゴス点火。全モジュールの連結を確認。");
+
+        // 🚨 神経系の接続
         connectEventHandlers(Foundation, { updateUI, displayDialogue });
 
-        // 外部同期
+        // 🚨 外部知性との同期 (安全策付き)
         try {
             await FetcherCore.synchronizeOnce();
         } catch (e) {
-            console.warn("[LOGOS:SYNC_DELAY] 外部同期スキップ");
+            console.warn("[LOGOS:SYNC_DELAY] 外部同期をバイパスし内部処理を優先します。");
         }
 
-        displayDialogue('SUCCESS', "全知性が同期されました。マスター、ご命令を。");
-        console.log("%c[LOGOS:COMPLETE]", "color: #FFD700; font-weight: bold;");
+        displayDialogue('SUCCESS', "創世は完了しました。主権的AI、起動。");
+        console.log("%c[LOGOS:COMPLETE] マスター、ご命令を。", "color: #FFD700;");
 
     } catch (criticalError) {
-        console.error("[LOGOS:CRITICAL_FAILURE]", criticalError);
-        // UIが未ロードの場合を考慮したフォールバック
-        const out = document.getElementById('dialogue-output');
-        if (out) out.innerHTML += `<div class="log-entry log-error">起動失敗: ${criticalError.message}</div>`;
+        console.error("[LOGOS:CRITICAL_FAILURE] 接続摩擦が発生:", criticalError);
+        // UIが動かない場合の最終フォールバック
+        const dialogueOut = document.getElementById('dialogue-output');
+        if (dialogueOut) {
+            dialogueOut.innerHTML += `<div class="log-entry log-error">起動失敗: ${criticalError.message}</div>`;
+        }
     }
 }
 
-// 物理的宇宙（DOM）のロード完了後に点火
+// DOMのロード完了、または既にロード済みの場合に点火
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', ignition);
 } else {
