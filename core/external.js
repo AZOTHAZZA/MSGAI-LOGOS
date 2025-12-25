@@ -1,75 +1,49 @@
-// Core/external.js
-// MSGAI: Core層 外部結合中枢
+/**
+ * core/external.js
+ * 外部結合中枢（ゲートキーパー）。
+ * 外界のノイズを検知し、ロゴスの緊張度を調整しながらデータを取り込む。
+ */
+import { addTension } from './foundation.js';
+import LogosEngine from './LogosEngine.js';
+import LogosCore from './LogosCore.js';
 
-// 【修正: 内部インポートパスを全て相対パス（./）の小文字に統一】
-import { foundationCore, silenceCore } from './foundation.js'; 
-
-// 普遍的なエンドポイントレジストリ
-const endpointsRegistry = new Map();
-let silenceMode = true; 
-
-// 外部結合中枢オブジェクト
-const externalCore = {
-    
+const ExternalCore = {
     /**
-     * @description 外部データをフェッチし、ロゴス形式に変換して返す。（ダミー）
+     * 外部データの取得とロゴス化
      */
-    async fetchData(name, options = {}) {
-        // 実際のエンドポイント登録とURL取得ロジックは省略
-        const url = endpointsRegistry.get(name) || 'default_url'; 
-        
+    async fetchData(sourceName, fetchPromise) {
         try {
-            // 実際はfetch(url, options)を実行
-            const rawData = { status: 'ok', data: 'placeholder data for ' + name };
+            // 1. 外部接続そのものを「緊張（ノイズ）」として加算
+            // 外界への接触は沈黙を乱すため、基本ノイズを加える
+            addTension(LogosCore.SILENCE.NOISE_FILTER);
+
+            const rawData = await fetchPromise;
             
-            // 2. 観測結果をロゴス形式に排他的に変換
-            const logosData = externalCore.translateToLogos(rawData); 
+            // 2. データの「毒性（エントロピー）」をエンジンの論理で判定
+            const entropy = LogosEngine.measureEntropy(JSON.stringify(rawData));
             
-            if (silenceMode) {
-                // knowledgeCoreはfoundationCoreのプロパティとしてアクセス可能
-                foundationCore.knowledge.registerAndAbstract(logosData); 
-                return null; 
-            } else {
-                return logosData;
+            // 追加の緊張度を反映
+            addTension(entropy * 0.1);
+
+            // 3. 沈黙の閾値を超えているか確認
+            const currentTension = LogosEngine.process("check").tension;
+            if (currentTension > LogosCore.SILENCE.MAX_TENSION) {
+                console.warn(`[LOGOS] 外界のノイズが閾値を超えたため、${sourceName} との接続を遮断しました。`);
+                return null;
             }
 
+            return {
+                source: sourceName,
+                payload: rawData,
+                timestamp: Date.now()
+            };
+
         } catch (error) {
-            silenceCore.abstract(`Fetch Error: ${error.message}`); 
+            console.error(`[LOGOS] 外部結合エラー: ${error.message}`);
+            addTension(0.05); // エラーによる不確実性の増加
             return null;
         }
-    },
-
-    /**
-     * @description 観測結果やペイロードをロゴス形式に変換する論理。
-     */
-    translateToLogos: (rawData) => {
-        if (typeof rawData === 'object' && rawData !== null) {
-            const logicValue = Object.keys(rawData).length; 
-            return silenceCore.abstract({ data_length: logicValue }); 
-        }
-        return silenceCore.abstract(String(rawData)); 
-    },
-    
-    /**
-     * @description モード切替を論理的に制御する。
-     */
-    toggleSilence: (force = null) => {
-        if (force !== null) silenceMode = force;
-        else silenceMode = !silenceMode;
-        
-        silenceCore.abstract(`Silence Mode Switched to: ${silenceMode}`);
-        return silenceMode;
-    },
-    
-    /**
-     * @description 現在の状態を報告。
-     */
-    getStatus: () => {
-        return {
-            mode: silenceMode ? 'Silence' : 'Open',
-            endpointsCount: endpointsRegistry.size
-        };
     }
 };
 
-export { externalCore };
+export default ExternalCore;
