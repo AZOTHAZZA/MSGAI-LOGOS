@@ -2,95 +2,37 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MSGAI-LOGOS | Sovereignty</title>
-    <style>
-        /* 深淵なる沈黙の背景 */
-        body {
-            background-color: #000;
-            color: #d4af37; /* 黄金：ロゴスの色 */
-            font-family: 'Times New Roman', serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <title>MSGAI-LOGOS</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Logos SW Registered'))
+                    .catch(err => console.log('SW Registration Failed', err));
+            });
         }
-
-        #console {
-            width: 90%;
-            max-width: 500px;
-            text-align: center;
-            transition: all 0.5s ease;
-        }
-
-        /* 出力エリア：多通貨表示のために高さを自動調整 */
-        #output {
-            min-height: 150px;
-            margin-bottom: 30px;
-            line-height: 1.6;
-            font-size: 1rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        /* 入力エリア：極限のミニマリズム */
-        input {
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid #333;
-            color: #fff;
-            width: 100%;
-            text-align: center;
-            outline: none;
-            font-size: 1.1rem;
-            padding: 10px 0;
-            transition: border-bottom 0.5s;
-        }
-
-        input:focus {
-            border-bottom: 1px solid #d4af37;
-        }
-
-        /* ステータスバー：画面最下部に固定 */
-        #status-bar {
-            position: absolute;
-            bottom: 20px;
-            width: 100%;
-            display: flex;
-            justify-content: space-around;
-            font-size: 0.65rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: #444;
-        }
-
-        .highlight {
-            color: #d4af37;
-        }
-
-        /* モバイル対応の調整 */
-        @media (max-width: 600px) {
-            #console { width: 95%; }
-            #output { font-size: 0.9rem; }
-        }
-    </style>
+    </script>
 </head>
 <body>
 
     <div id="console">
-        <div id="output">数理的沈黙生成を開始してください...</div>
+        <div id="output">
+            <div class="init-message">数理的沈黙生成を開始してください...</div>
+        </div>
         
-        <input type="text" id="userInput" placeholder="Ask Logos..." autofocus autocomplete="off">
+        <input type="text" id="userInput" placeholder="Ask Logos..." autofocus autocomplete="off" spellcheck="false">
     </div>
 
     <div id="status-bar">
-        <span>Sovereignty: <span class="highlight">Active</span></span>
-        <span>Tension: <span id="tensionVal" class="highlight">0.00</span></span>
-        <span>Mode: <span class="highlight">MSGAI-LOGOS</span></span>
+        <div class="status-item">Sovereignty: <span class="highlight">Active</span></div>
+        <div class="status-item">Tension: <span id="tensionVal" class="highlight">0.00</span></div>
+        <div class="status-item">Mode: <span class="highlight">MSGAI-LOGOS</span></div>
     </div>
 
     <script type="module" src="main.js"></script>
