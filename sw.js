@@ -1,61 +1,52 @@
 /**
- * sw.js (MSGAI-LOGOS 最終永続化版)
- * ロゴスの理をローカルストレージに刻み、オフライン下での主権を保証する。
+ * sw.js (最終確定版：永続化統治)
+ * 厳選されたロゴス資産のみをキャッシュし、不整合によるタイムアウトを排除する。
  */
 
-const CACHE_NAME = 'logos-v1.0.1'; // バージョンアップにより旧キャッシュをパージ
+const CACHE_NAME = 'logos-v1.1.0';
 
-// キャッシュすべき全モジュールの網羅
+// 確実に存在する主要ファイルに限定（不確実なファイルは動的にキャッシュする方針）
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './main.js',
   './manifest.json',
-  // core層
+  // core層（これまでの対話で確定した主要ファイル）
   './core/LogosCore.js',
   './core/arithmos.js',
   './core/foundation.js',
   './core/LogosEngine.js',
   './core/currency.js',
   './core/external_finance_logos.js',
-  './core/knowledge.js',
-  './core/runtime_logos.js',
-  './core/os_logos.js',
-  './core/power_logos.js',
-  './core/silence.js',
-  './core/ios_logos.js',
-  './core/message_channel_logos.js',
-  './core/revision_logos.js',
-  './core/storage_logos.js',
+  './core/storage.js',
   './core/cache_logos.js',
-  './core/module_logos.js',
+  './core/module.js',
   './core/dialogue.js',
   './core/external.js',
-  './core/foundation_logos.js',
-  './core/language_logos.js',
-  './core/service_logos.js',
-  // app層
+  './core/client_logos.js',
+  './core/comms_logos.js',
+  // app/ai層
   './app/fusionui.js',
   './app/handler.js',
   './app/offline.js',
-  // ai層
   './ai/generator.js',
   './ai/fetch.js'
 ];
 
-// インストール: 全ロゴス資産の永続化
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW] 資産の永続的キャッシュを開始。');
-      return cache.addAll(ASSETS);
+      // cache.addAll は一つでも失敗すると全体が失敗するため、
+      // 確実に存在するファイルだけを登録するか、個別に add する
+      return Promise.allSettled(
+        ASSETS.map(asset => cache.add(asset).catch(err => console.warn(`[SW] Skip asset: ${asset}`, err)))
+      );
     })
   );
   self.skipWaiting();
 });
 
-// アクティベート: 旧バージョンの作為（古いキャッシュ）をパージ
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -64,15 +55,13 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
-  console.log('[SW] 旧い作為のパージ完了。最新のロゴスが支配しています。');
   return self.clients.claim();
 });
 
-// フェッチ: キャッシュを優先しつつ、ロゴスの連続性を保つ
 self.addEventListener('fetch', (event) => {
+  // ネットワーク優先、失敗したらキャッシュを返す「Network First」へ変更
+  // 開発中のデプロイ反映を速めるため。
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });
