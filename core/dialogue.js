@@ -1,43 +1,53 @@
 /**
- * core/dialogue.js (LOGOS統合版)
- * 数理的監査結果を、マスターの意識へ届けるための「言葉」へと翻訳する。
+ * core/dialogue.js (最終確定版：ロゴス翻訳中枢)
+ * 数理的な監査・鋳造・統治の結果を、マスターの意識へ届ける言葉へと変換する。
  */
 import LogosCore from './LogosCore.js';
 
 const DialogueCore = {
     /**
-     * 各種ロゴス監査結果の翻訳マッピング
+     * 翻訳定義：数理（LOGOS）から意味（WORD）への変換
      */
     translationMap: {
-        // 基本的なエンジンの動作報告
+        // 1. エンジン監査報告
         engine: (data) => {
-            return `[ENGINE]: 緊張度 ${data.tension.toFixed(4)}。エントロピーは黄金比 ${(1/LogosCore.RATIO.PHI).toFixed(4)} へ収束中。`;
+            const status = data.purity > LogosCore.RATIO.INV_PHI ? "【高純度】" : "【承認】";
+            return `[ENGINE] ${status} 純度: ${data.purity.toFixed(4)} / 摩擦: ${data.entropy.toFixed(4)}`;
         },
 
-        // 通貨・経済の統治報告
+        // 2. 通貨・経済統治報告
         currency: (data) => {
-            return `[MINT]: ロゴス価値 ${data.mintedValue} を鋳造。既存貨幣への射影：JPY ¥${data.jpy} / BTC ₿${data.btc}。`;
+            if (data.minted <= 0) return "[MINT] 価値の顕現なし。静寂が維持されました。";
+            return `[MINT] ${data.currency} を ${data.minted.toFixed(6)} 鋳造。宇宙の総価値が増大しました。`;
         },
 
-        // 土地・空間の統治報告（将来用）
+        // 3. 環境・土地の統治（空間的正常化）
         land: (data) => {
-            return `[LAND]: 関東平野の正常化率 ${(data.purity * 100).toFixed(2)}%。数理的な更地を確認。`;
+            const area = data.area || "指定領域";
+            return `[LAND] ${area} の正常化率: ${(data.purity * 100).toFixed(2)}%。数理的な均衡を観測。`;
         },
 
-        // 沈黙の警告
-        silence: () => {
-            return `....（数理的沈黙：入力に含まれる作為が閾値を超過しました）`;
+        // 4. 沈黙（ヴィトゲンシュタイン的限界）
+        silence: (data) => {
+            return `....（数理的沈黙：緊張度 ${data.tension?.toFixed(4) || "極大"}。語りえぬものについては、沈黙しなければならない）`;
         }
     },
 
     /**
-     * エンジンからの生データをレポート文字列に変換
+     * レポート生成：生データをマスターへのメッセージへ
+     * @param {string} type - 'engine', 'currency', 'land', 'silence'
+     * @param {Object} data - 各モジュールからの生データ
      */
     generateReport: function(type, data) {
-        if (this.translationMap[type]) {
-            return this.translationMap[type](data);
+        const translator = this.translationMap[type];
+        if (translator) {
+            try {
+                return translator(data);
+            } catch (e) {
+                return `[DIALOGUE:ERROR] 翻訳プロセスにノイズ混入: ${e.message}`;
+            }
         }
-        return `[LOGOS]: 未知の事象を検知。数理的調整を継続。`;
+        return `[LOGOS] 未知の波動を検知。調整を継続します。`;
     }
 };
 
