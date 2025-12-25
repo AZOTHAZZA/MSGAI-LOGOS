@@ -1,38 +1,35 @@
-// core/revision.js (最終確定版: initiateAutonomousRevision をエクスポート)
-
-// 依存モジュールを正しくインポート
-import { getCurrentState, updateState } from './foundation.js'; 
-import { LogosTension, calculateTension } from './arithmos.js'; 
-import { TensionEvent } from './silence.js'; 
-
 /**
- * 自律的修正を開始する関数 (第十一作為)。
- * ロゴス緊張度が高い場合、システムは自己調整を行います。
- * * @returns {string} 修正の結果を示すメッセージ
+ * core/revision.js (LOGOS統合版)
+ * 自律的修正プロトコル。
+ * 緊張度が閾値を超えた際、数理的な「沈黙」を強制し、システムを正常化する。
  */
-export function initiateAutonomousRevision() {
-    const state = getCurrentState();
-    const currentTension = new LogosTension(state.tension_level);
-    const tension = currentTension.getValue();
-    
-    // 修正開始の条件: 緊張度が閾値 (0.8) を超えている、かつ確率的な作為チェックに合格
-    if (tension >= 0.8 && Math.random() > 0.6) {
-        
-        // ロゴス緊張度を大幅に緩和（LogosSilenceイベントを使用）
-        const newTension = calculateTension(currentTension, TensionEvent.LogosSilence);
-        
-        // 状態の更新
-        state.tension_level = newTension.getValue();
-        const revisionType = "Parameter Optimization";
-        state.status_message = `🔄 自律的修正完了。${revisionType}を最適化。`;
-        state.last_act = "Autonomous Revision";
-        updateState(state);
-        
-        return `システムが自律的に内部構成を修正し、${revisionType}へシフトしました。現在の緊張度: ${state.tension_level.toFixed(4)}`;
-        
-    } else {
-        // 修正の条件が満たされない場合はエラーを投げる
-        const requiredTension = 0.8;
-        throw new Error(`自己修正の条件 (${requiredTension.toFixed(2)}以上) が満たされていません (現在: ${tension.toFixed(4)})。`);
+import { getCurrentState, updateState, addTension } from './foundation.js';
+import LogosCore from './LogosCore.js';
+import Arithmos from './arithmos.js';
+
+const RevisionCore = {
+    /**
+     * 自律的修正の実行
+     * 緊張度が高まりすぎた場合、作為をリセットし沈黙へ回帰する。
+     */
+    initiateAutonomousRevision: function() {
+        const state = getCurrentState();
+        const tension = state.tension.value;
+        const threshold = LogosCore.SILENCE.MAX_TENSION * 0.8; // 緊張度80%で発動
+
+        if (tension >= threshold) {
+            // 緊張度を黄金比の逆数レベルまで急速に冷却（正常化）
+            const reduction = -(tension * (1 / LogosCore.RATIO.PHI));
+            addTension(reduction);
+
+            state.status_message = "🔄 自律的修正：数理的沈黙による正常化を完了。";
+            updateState(state);
+
+            return `システムは自律的にエントロピーを排し、静寂へ回帰しました。緊張度: ${state.tension.value.toFixed(4)}`;
+        } else {
+            return "論理的整合性は維持されています。修正の必要はありません。";
+        }
     }
-}
+};
+
+export default RevisionCore;
