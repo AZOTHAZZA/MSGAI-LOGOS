@@ -1,56 +1,79 @@
 /**
- * core/currency.js
- * MSGAI-LOGOS 多通貨交換・統治モジュール
+ * core/currency.js (最終確定版：多通貨統治モジュール)
+ * 宇宙の理（黄金比）に基づき、知性から価値を、価値から多通貨を顕現させる。
  */
 import LogosCore from './LogosCore.js';
-import LogosEngine from './LogosEngine.js';
-import Mint from './Mint.js';
 
-// 黄金比ベースの動的な為替計算（USDを基準とした射影）
-const getLogosRate = (currency) => {
+/**
+ * 黄金比ベースの動的為替レート
+ * 全ての価値は LOGOS を特異点（1.0）として射影される。
+ */
+const getExchangeRate = (currency) => {
     const phi = LogosCore.RATIO.PHI;
+    const invPhi = LogosCore.RATIO.INV_PHI; // 0.618...
+    
     const rates = {
-        JPY: phi * 100,      // 161.8
-        USD: 1,              // 基準
-        EUR: phi / 1.7,      // 0.95
-        BTC: 1 / Math.pow(phi, 10), // 希少性
+        LOGOS: 1.0,                              // 宇宙の基準
+        JPY: phi * 100,                          // 約161.8
+        USD: invPhi,                             // 約0.618
+        EUR: invPhi * 0.9,
+        BTC: 1 / Math.pow(phi, 10),              // 究極の希少性
         ETH: 1 / Math.pow(phi, 5),
-        MATIC: Math.PI / phi
+        MATIC: LogosCore.RATIO.PI / phi
     };
-    return rates[currency] || 1;
+    return rates[currency] || 1.0;
 };
 
 export const CurrencyAct = {
     /**
-     * 通貨生成：LogosEngineの判定を経て価値を顕現させる
+     * 通貨生成（鋳造）：純度と摩擦から価値を確定する
+     * @param {Object} account - Foundationから渡される特定のユーザー口座
+     * @param {string} currency - 鋳造する通貨単位
+     * @param {number} purity - 言語監査による純度 (0.0 - 1.0)
+     * @param {number} entropy - 発生したエントロピー/摩擦
      */
-    mint: function(userState, currency, energy, entropy) {
-        // ロゴス価値を算出
-        const logosValue = Mint.calculateMint(energy, entropy);
-        const rate = getLogosRate(currency);
+    mint: function(account, currency, purity, entropy) {
+        const phi = LogosCore.RATIO.PHI;
         
+        // 旧 Mint.js の数理を洗練：純度が高いほど黄金比の恩恵を受け、摩擦で減衰する
+        const logosValue = (purity * phi) / (1 + (entropy * LogosCore.RATIO.INV_PHI));
+        
+        const rate = getExchangeRate(currency);
         const amount = logosValue * rate;
-        userState.accounts[currency] = (userState.accounts[currency] || 0) + amount;
+
+        // 口座への反映
+        account[currency] = (account[currency] || 0) + amount;
         
-        return { userState, amount };
+        return {
+            currency: currency,
+            amount: amount,
+            logosValue: logosValue
+        };
     },
 
     /**
-     * 通貨交換：エントロピーを発生させつつ、価値を転換する
+     * 通貨交換：エントロピー（手数料的な摩擦）を伴う等価変換
      */
-    exchange: function(userState, fromCur, amount, toCur) {
-        if ((userState.accounts[fromCur] || 0) < amount) throw new Error("残高不足");
+    exchange: function(account, fromCur, amount, toCur) {
+        if ((account[fromCur] || 0) < amount) {
+            throw new Error("[CURRENCY:ERROR] 残高不足です。");
+        }
 
-        const fromRate = getLogosRate(fromCur);
-        const toRate = getLogosRate(toCur);
+        const fromRate = getExchangeRate(fromCur);
+        const toRate = getExchangeRate(toCur);
         
-        // 価値の等価変換 (USD換算経由)
-        const usdValue = amount / fromRate;
-        const convertedAmount = usdValue * toRate;
+        // 変換プロセス：一旦 LOGOS 換算してから目的の通貨へ
+        const logosValue = amount / fromRate;
+        const convertedAmount = logosValue * toRate;
 
-        userState.accounts[fromCur] -= amount;
-        userState.accounts[toCur] = (userState.accounts[toCur] || 0) + convertedAmount;
+        // 資産の移動
+        account[fromCur] -= amount;
+        account[toCur] = (account[toCur] || 0) + convertedAmount;
 
-        return { userState, convertedAmount };
+        return {
+            from: fromCur,
+            to: toCur,
+            convertedAmount: convertedAmount
+        };
     }
 };
