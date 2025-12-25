@@ -1,34 +1,34 @@
 /**
- * core/Mint.js
- * 脱エントロピー通貨「LOGOS」の鋳造を司る。
- * 市場の不確実性を排除し、純粋数理に基づく価値生成を行う。
+ * core/Mint.js (多通貨生成対応版)
  */
 import LogosCore from './LogosCore.js';
 
 const Mint = {
-    /**
-     * ロゴス価値の算出
-     * @param {number} energy - 入力量（精神的エネルギーの代理指標）
-     * @param {number} entropy - 論理緊張度（ノイズ成分）
-     * @returns {number} 生成されたロゴス価値
-     */
     calculateMint: function(energy, entropy) {
         const phi = LogosCore.RATIO.PHI;
         const baseUnit = LogosCore.ECONOMICS.BASE_UNIT;
-        
-        // 価値 = (基本単位 * 黄金比 * エネルギー) / (1 + エントロピー)
-        // 摩擦（FRICTION）がゼロの理想状態での計算
         const value = (baseUnit * phi * energy) / (1 + entropy);
-        
         return value;
     },
 
     /**
-     * 価値の恒常性維持
-     * 生成された価値がロゴスの均衡（Stability）を保っているか確認する
+     * ロゴス価値を諸通貨の形へ顕現させる
+     * 各通貨の特性に合わせた数理的フィルタリング
      */
-    validateStability: function(value) {
-        return value > 0 && isFinite(value);
+    manifestAssets: function(logosValue) {
+        const phi = LogosCore.RATIO.PHI;
+        
+        return {
+            LOGOS: logosValue.toFixed(8),
+            // 黄金比をベースとした各通貨への変換
+            JPY: (logosValue * phi * 100).toFixed(2),
+            USD: (logosValue * (phi / 1.5)).toFixed(4),
+            EUR: (logosValue * (phi / 1.6)).toFixed(4),
+            // 暗号通貨はエントロピー耐性（LOGOSの純度）を重視
+            BTC: (logosValue / (Math.pow(phi, 10))).toFixed(8),
+            ETH: (logosValue / (Math.pow(phi, 5))).toFixed(8),
+            MATIC: (logosValue * Math.PI).toFixed(4)
+        };
     }
 };
 
