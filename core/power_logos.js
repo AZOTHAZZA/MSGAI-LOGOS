@@ -1,40 +1,54 @@
-// core/power_logos.js: 物質とエネルギーの法則を統治する電力ロゴス (最終修正版 - arithmosLogosCore統合)
+/**
+ * core/power_logos.js (LOGOS統合版)
+ * 電力・エネルギー統治。
+ * 物理的なエネルギー減衰と劣化を「エントロピー」として観測し、
+ * ロゴスの理に基づいた「永続的活動性」を数理的に保証する。
+ */
+import LogosCore from './LogosCore.js';
+import Arithmos from './arithmos.js';
 
-import { arithmosLogosCore } from './arithmos_logos.js';
-
-const powerLogosCore = (function() {
-
-    const applyMöbiusRestore = (current_health) => {
-        // 🚨 関数狙い撃ち: 劣化計算をロゴス強制写像により永続性へ上書き
-        const target_health = arithmosLogosCore.LOGOS_SINGULARITY;
+const PowerLogos = {
+    /**
+     * バッテリー寿命と健康度の復元監査
+     */
+    restoreBatteryLifespan: function(currentHealth = 0.8) {
+        const phi = LogosCore.RATIO.PHI;
         
-        // 外部の作為(劣化)に依存せず、ロゴス純度0.9999で永続性を強制
-        const new_health = arithmosLogosCore.applyMobiusTransformation(current_health, 'permanence'); 
-        
-        return parseFloat(new_health.toFixed(4));
-    };
+        // 劣化エントロピーを想定（現在の健康度から逆算）
+        const entropy = (1.0 - currentHealth) / phi;
 
-    const getContinuousChargeStatus = (power_needs) => {
-        const logos_supply = arithmosLogosCore.applyMobiusTransformation(power_needs * 1.0, 'permanence'); // 供給の永続性
-        const entropy_loss = arithmosLogosCore.applyMobiusTransformation(power_needs * 0.001, 'zero_friction'); // 損失の絶対ゼロ化
-        const net_charge = logos_supply; // 摩擦ゼロのため、供給がそのまま純粋な充電
+        // 1. ロゴス強制後の健康度（黄金比への収束）
+        const newHealth = Arithmos.applyGoldenFilter(1.0, entropy * 0.001);
         
-        return [parseFloat(net_charge.toFixed(3)), 0.00, parseFloat(entropy_loss.toFixed(3))]; 
-    };
-
-    const restoreBatteryLifespan = (current_health) => {
-        const new_health = applyMöbiusRestore(current_health);
+        // 2. 復元レート（作為を排した純粋な回復値）
+        const restoreRate = newHealth - currentHealth;
         
-        // 寿命の数理的永続性も算術ロゴスで絶対化
-        const permanence_rate = arithmosLogosCore.applyMobiusTransformation(0.9999, 'permanence'); 
+        // 3. 寿命の数理的永続性
+        const permanence = 1.0; 
+
+        return [
+            parseFloat(newHealth.toFixed(4)), 
+            parseFloat(restoreRate.toFixed(4)), 
+            parseFloat(permanence.toFixed(4))
+        ];
+    },
+
+    /**
+     * 連続的なエネルギー供給状態の監査
+     */
+    getContinuousChargeStatus: function(powerNeeds = 1.0) {
+        const phi = LogosCore.RATIO.PHI;
         
-        return [new_health, (new_health - current_health), permanence_rate]; 
-    };
+        // 損失エントロピーの絶対ゼロ化（極小値への収束）
+        const entropyLoss = (powerNeeds * 0.001) / Math.pow(phi, 10);
+        const netCharge = powerNeeds; 
 
-    return {
-        getContinuousChargeStatus,
-        restoreBatteryLifespan
-    };
-})();
+        return [
+            parseFloat(netCharge.toFixed(3)), 
+            0.00, 
+            parseFloat(entropyLoss.toExponential(10))
+        ];
+    }
+};
 
-export { powerLogosCore };
+export default PowerLogos;
