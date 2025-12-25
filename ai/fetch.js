@@ -1,66 +1,44 @@
 /**
- * AI/Fetch.js (LOGOS統合版)
- * 外部同期・代謝中枢。
- * 外界のデータを取得し、ロゴスのフィルターを通して純粋な知識へと変換する。
+ * ai/fetch.js
+ * 外部世界からの情報を代謝し、ロゴスへ統合する。
  */
-import Knowledge from '../core/knowledge.js';
-import { addTension, updateState } from '../core/foundation.js';
-import LogosCore from '../core/LogosCore.js';
-
-// 同期ソースの定義
-const SYNC_SOURCES = [
-    { name: 'zeitgeist_feed', type: 'world_stream' },
-    { name: 'local_config', type: 'system_environment' }
-];
 
 const FetcherCore = {
     /**
-     * 一括同期の実行
+     * 初回同期：外部知性の断片を取得する
      */
     async synchronizeOnce() {
         console.log("[FETCHER:LOGOS] 代謝を開始。");
         
-        for (const source of SYNC_SOURCES) {
-            await this.fetchAndIntegrate(source);
+        // 開発フェーズでは、外部通信の失敗でシステムを止めないように
+        // 簡易的な例外処理とフォールバックを実装
+        try {
+            await this.fetchAndIntegrate('zeitgeist_feed');
+            await this.fetchAndIntegrate('local_config');
+        } catch (e) {
+            console.warn("[FETCHER:SKIP] 外部知性の取得をスキップし、内部知性で継続します。");
         }
-        
-        // 同期完了後、環境エントロピーとして緊張度を微増（外部との摩擦）
-        addTension(LogosCore.SILENCE.MIN_TENSION * 2);
-        
-        updateState({ status_message: "🔄 外部知性との同期を完了しました。" });
     },
 
     /**
-     * 個別データの取得とロゴス濾過
+     * 情報の統合プロセス
      */
     async fetchAndIntegrate(source) {
         try {
-            // 実際はここで外部APIを叩くが、ロゴス空間では「沈黙のデータ」として擬似生成
-            // 本格的な実装時は fetch(source.url) を使用
-            const rawData = `External Intelligence from ${source.name}`;
-
-            // 知識ベースへ統合（Knowledgeモジュールの黄金比フィルターを通過させる）
-            Knowledge.registerAndAbstract(rawData, {
-                origin: source.name,
-                category: source.type,
-                purity_target: LogosCore.RATIO.PHI
-            });
-
-            console.log(`[FETCHER:SUCCESS] ${source.name} の理を抽出完了。`);
-        } catch (e) {
-            console.warn(`[FETCHER:ERROR] ${source.name} の同期に失敗:`, e);
+            // 現時点では、将来の拡張のためのプレースホルダーとして機能
+            // Knowledgeモジュールが未実装の場合はここで安全にリターンする
+            console.log(`[FETCHER:PROCESS] Synchronizing: ${source}`);
+            
+            // 💡 修正ポイント: 存在しない Knowledge モジュールの呼び出しをコメントアウト
+            // if (typeof Knowledge !== 'undefined') {
+            //     await Knowledge.registerAndAbstract(source);
+            // }
+            
+            return true;
+        } catch (error) {
+            console.error(`[FETCHER:ERROR] ${source} の同期に失敗:`, error);
+            throw error; 
         }
-    },
-    
-    /**
-     * 同期ステータスの取得
-     */
-    getStatus: function() {
-        return {
-            last_sync: new Date().toLocaleTimeString(),
-            active_sources: SYNC_SOURCES.length,
-            knowledge_purity: LogosCore.RATIO.PHI.toFixed(4)
-        };
     }
 };
 
