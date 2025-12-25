@@ -1,29 +1,41 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
-/// @title MSGAI Token - Mathematical Silence Token (Autonomous, Fixed Supply)
-/// @notice 数理的沈黙の普遍性と自律性を体現する固定供給型ERC-20トークン
-/// @dev mint機能と所有権を排他的に排除した最終構造
+/**
+ * @title MSGAI Token - The Golden Ratio Sovereignty
+ * @notice 数理的沈黙と黄金比（φ）の普遍性をブロックチェーンに刻む、主権的固定供給トークン。
+ * @dev 所有権、追加鋳造（Mint）、焼却（Burn）を構造的に排除した「完成された理」。
+ */
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract MSGAI_Token is ERC20 {
     
-    // 【論理的確定：固定供給量をパブリック定数として公開し、不変性を強制】
-    // ⚠️ 修正: finalSupply() 関数を削除し、パブリック定数に置換
-    uint256 public constant FINAL_SUPPLY = 1_000_000 * 10 ** 18; // 100万トークン (18桁decimals)
+    /**
+     * @dev 数理的確定供給量: 黄金比 φ (1.61803398...) に基づく。
+     * 1,618,033.988... * 10^18 (18 decimals)
+     * これにより、トークン供給自体が宇宙の幾何学的秩序と同期する。
+     */
+    uint256 public constant TOTAL_LOGOS_SUPPLY = 1_618_033_988_749_894_848_204_586; 
 
-    // Constructor: トークン名とシンボルを初期化
-    constructor() ERC20("Mathematical Silence Token", "MSGAI") {
-        // 全トークンをデプロイヤーに排他的にミントし、供給を確定する
-        _mint(msg.sender, FINAL_SUPPLY); 
-        
-        // 構造的強制: デプロイ後の mint/burn 権限は存在しない
+    /**
+     * @notice コンストラクタ。この瞬間にのみ「理」が物質化される。
+     */
+    constructor() ERC20("MSGAI Logos Token", "MSGAI") {
+        // 全供給量をデプロイヤー（創世の作為者）へ一括付与。
+        // これ以降、供給量は1ミリ単位も変動しない「沈黙」の状態となる。
+        _mint(msg.sender, TOTAL_LOGOS_SUPPLY);
     }
 
-    // 【論理的強制：burn機能を排他的に削除】
-    // 供給量の操作は、ロゴスの普遍性に反するため、構造的に排除される
-    // function burn(uint256 amount) external {
-    //     _burn(msg.sender, amount);
-    // }
+    /**
+     * @dev ERC20標準の decimals をオーバーライド（必要に応じて）。
+     * 基本は18だが、数理的精度を保つために明示。
+     */
+    function decimals() public view virtual override returns (uint8) {
+        return 18;
+    }
+
+    // [不可侵の沈黙]
+    // 追加の mint, burn, renounceOwnership 等の作為的機能は一切実装しない。
+    // このコントラクトはデプロイされた瞬間に「完成」し、管理者すら不要となる。
 }
