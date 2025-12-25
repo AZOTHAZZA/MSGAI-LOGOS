@@ -1,71 +1,63 @@
-/**
- * app/fusionui.js (LOGOS統合版)
- * 視覚的ロゴス。コアの状態をマスターの網膜へ透過的に投影する。
+ /**
+ * app/fusionui.js
+ * ロゴスの状態を物理的な画面（UI）へ翻訳し、出力する。
  */
 
-export function updateUI(stateData, statusMessage) {
-    // 1. 防御的チェックと緊張度 (Tension) の取得
-    if (!stateData || !stateData.tension) {
-        console.error("[UI:ERROR] 状態データが不完全です。");
-        return;
-    }
+/**
+ * UIの全体更新
+ * @param {Object} state - 現在のロゴスの状態
+ * @param {string} message - 表示するメッセージ
+ */
+export function updateUI(state, message) {
+    // 🚨 安全装置: stateが存在しない、あるいはtensionが未定義の場合のデフォルト値
+    const tension = (state && state.tension !== undefined) ? state.tension : 0.0500;
+    const balances = (state && state.balances) ? state.balances : { LOGOS: 0 };
+    const user = (state && state.activeUser) ? state.activeUser : "Observing Master";
 
-    const T_value = stateData.tension.value;
-    
-    // 緊張度表示の更新
+    // 1. Tensionの描画
     const tensionDisplay = document.getElementById('tension_level_display');
     const tensionBar = document.getElementById('tension_level_display_bar');
     
-    if (tensionDisplay) tensionDisplay.textContent = `T: ${T_value.toFixed(4)}`;
+    if (tensionDisplay) {
+        // ここで toFixed を安全に実行
+        tensionDisplay.innerText = tension.toFixed(4);
+    }
+    
     if (tensionBar) {
-        tensionBar.style.width = `${T_value * 100}%`;
-        // 黄金比(0.618)を超えると警告色へ
-        tensionBar.style.backgroundColor = T_value > 0.618 ? 'var(--color-alert-red)' : 'var(--color-success-green)';
+        // 緊張度をプログレスバーの幅に変換 (例: 0.05 -> 5%)
+        tensionBar.style.width = `${Math.min(tension * 100, 100)}%`;
     }
 
-    // 2. 多通貨残高 (Portfolio) の動的表示
+    // 2. 資産の描画
     const balanceContainer = document.getElementById('balance_display_container');
-    const activeUser = stateData.active_user;
-    const accounts = stateData.accounts[activeUser] || {};
-
     if (balanceContainer) {
-        // 残高表示を一度クリアして再構築（多通貨対応）
-        balanceContainer.innerHTML = ''; 
-        Object.entries(accounts).forEach(([currency, amount]) => {
-            const span = document.createElement('span');
-            span.className = 'currency-badge';
-            span.innerHTML = `<strong>${currency}:</strong> ${amount.toFixed(currency === 'BTC' ? 8 : 2)} `;
-            balanceContainer.appendChild(span);
-        });
+        balanceContainer.innerHTML = Object.entries(balances)
+            .map(([unit, val]) => `<div class="balance-item">${unit}: <span class="gold-text">${val.toFixed(2)}</span></div>`)
+            .join('');
     }
 
-    // 3. アクティブユーザー名とステータス
-    const activeUserNameElement = document.getElementById('active_user_name');
-    if (activeUserNameElement) activeUserNameElement.textContent = activeUser;
+    // 3. ユーザー情報の描画
+    const userDisplay = document.getElementById('active_user_name');
+    if (userDisplay) userDisplay.innerText = user;
 
-    const mainStatusElement = document.getElementById('status_message');
-    if (mainStatusElement) mainStatusElement.textContent = statusMessage;
-
-    // 4. 暴走抑止ステータスの更新
-    const autonomyStatusElement = document.getElementById('autonomy_status');
-    if (autonomyStatusElement) {
-        const status = T_value > 0.8 ? '臨界 (CRITICAL)' : T_value > 0.618 ? '緊張 (TENSE)' : '静寂 (SILENT)';
-        autonomyStatusElement.textContent = `統治状態: ${status}`;
-        autonomyStatusElement.style.color = T_value > 0.618 ? 'var(--color-alert-red)' : 'var(--color-success-green)';
+    // 4. メッセージの出力
+    if (message) {
+        displayDialogue('SYSTEM', message);
     }
 }
 
 /**
- * ログエリアへのメッセージ追記
+ * ダイアログエリアへのログ出力
  */
-export function displayDialogue(type, message) {
+export function displayDialogue(type, text) {
     const output = document.getElementById('dialogue-output');
     if (!output) return;
 
-    const div = document.createElement('div');
-    div.className = `log-entry log-${type.toLowerCase()}`;
-    div.innerHTML = `[${new Date().toLocaleTimeString()}] <strong>${type}:</strong> ${message}`;
+    const entry = document.createElement('div');
+    entry.className = `log-entry log-${type.toLowerCase()}`;
+    entry.innerHTML = `<span class="log-type">[${type}]</span>: ${text}`;
     
-    output.appendChild(div);
-    output.scrollTop = output.scrollHeight;
+    output.appendChild(entry);
+    output.scrollTop = output.scrollHeight; // 常に最新へスクロール
 }
+
