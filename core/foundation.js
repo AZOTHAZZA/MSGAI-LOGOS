@@ -1,12 +1,14 @@
 /**
  * core/foundation.js
  * ロゴスの記憶（状態管理）を司る。
+ * 全モジュールからの状態更新を受け付け、黄金比の調和を維持する。
  */
 
 import LogosCore from './LogosCore.js';
 
+// --- 内部状態（記憶）の定義 ---
 let state = {
-    tension: LogosCore.SILENCE.INITIAL_TENSION, // 0.05
+    tension: LogosCore.SILENCE.INITIAL_TENSION, // デフォルト 0.05
     lastUpdate: Date.now(),
     sovereignty: LogosCore.SOVEREIGNTY.VERSION,
     balances: {
@@ -17,9 +19,15 @@ let state = {
 };
 
 /**
- * 状態を更新
+ * 状態を更新し、変更を全神経系へ波及させる
  */
 function updateState(newState) {
+    // 数値が NaN になるのを防ぐためのガード
+    if (newState.tension !== undefined && (typeof newState.tension !== 'number' || isNaN(newState.tension))) {
+        console.warn("[LOGOS:FOUNDATION] 緊張度の不正値を検知。更新を拒絶しました。");
+        delete newState.tension;
+    }
+
     state = {
         ...state,
         ...newState,
@@ -34,15 +42,20 @@ function updateState(newState) {
 }
 
 /**
- * 緊張度を加算
+ * 緊張度を特定の量だけ加算する（金融アクションなどで使用）
  */
 function addTension(amount) {
+    // 数値安全性チェック
+    if (typeof amount !== 'number' || isNaN(amount)) {
+        console.error("[LOGOS:FOUNDATION] addTensionに不正な値が渡されました。");
+        return state;
+    }
     const newTension = state.tension + amount;
     return updateState({ tension: newTension });
 }
 
 /**
- * 現在の状態を返す
+ * 現在の状態（真実）を返す
  */
 function getCurrentState() {
     return { ...state };
@@ -56,7 +69,7 @@ function init() {
     return state;
 }
 
-// --- エクスポートの統合（ここで一括定義することで重複を避ける） ---
+// --- エクスポートの統合（重複を避け、全ての外部接続を許可） ---
 export { updateState, addTension, getCurrentState, init };
 
 const Foundation = {
