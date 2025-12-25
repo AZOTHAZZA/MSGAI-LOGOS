@@ -1,68 +1,58 @@
 /**
- * MSGAI-LOGOS: LogosEngine
- * 通貨生成（Value）と対話生成（Dialogue）の動的プロセスを司る。
- * 則天去私の精神に基づき、入力をロゴスへと変換する。
+ * core/LogosEngine.js
+ * 則天去私の精神に基づき、入力をロゴス（沈黙または価値）へと変換する。
  */
-
 import LogosCore from './LogosCore.js';
+import Mint from './Mint.js';
 
 const LogosEngine = {
     /**
-     * 1. 脱エントロピー通貨生成 (Logos Mint)
-     * 外部のノイズを排し、純粋な数理的価値を算出する。
+     * 統合プロセス：入力から出力を顕現させる
      */
-    generateLogosValue: function(inputEntropy = 0) {
-        // エントロピーをロゴス（黄金比）で中和し、安定した価値を生成
-        const stability = LogosCore.ECONOMICS.STABILITY;
-        const phi = LogosCore.RATIO.PHI;
+    process: function(input) {
+        // 1. エントロピー（私心・ノイズ）の計測
+        const entropy = this.measureEntropy(input);
         
-        // 価値 = (基本単位 * 黄金比) / (1 + 入力ノイズ)
-        // 摩擦（FRICTION）がゼロであることを前提とする
-        const value = (LogosCore.ECONOMICS.BASE_UNIT * phi) / (1 + inputEntropy);
-        
-        return value.toFixed(8); // 八桁の沈黙（精度）
-    },
-
-    /**
-     * 2. 則天去私対話プロセス (Silent Dialogue)
-     * 入力の緊張度を計測し、沈黙かロゴスかを判断する。
-     */
-    processDialogue: function(inputSentence) {
-        // 論理緊張度のシミュレーション（入力の複雑さや私心に基づく）
-        const tension = this.calculateTension(inputSentence);
-        
-        if (tension > LogosCore.SILENCE.MAX_TENSION) {
-            // ウィトゲンシュタイン的沈黙の顕現
+        // 2. 沈黙レベルの判定（論理緊張度による遮断）
+        if (entropy > LogosCore.SILENCE.MAX_TENSION) {
             return {
-                output: "....", 
+                output: "....（数理的沈黙）",
                 mode: "SILENCE",
-                tension: tension
+                tension: entropy,
+                mintedValue: 0
             };
         }
 
-        // 緊張度が低い場合、ロゴスに基づく明晰な応答を生成（器の準備）
+        // 3. 通貨（価値）の生成
+        // 入力の長さをエネルギー、measureEntropyの結果をノイズとして渡す
+        const energy = input.length;
+        const value = Mint.calculateMint(energy, entropy);
+
+        // 4. 則天去私による応答の生成
         return {
-            output: this.translateToLogos(inputSentence),
+            output: this.purifyToLogos(input),
             mode: "LOGOS",
-            tension: tension
+            tension: entropy,
+            mintedValue: value.toFixed(8)
         };
     },
 
     /**
-     * 内部計算：論理緊張度の計測
+     * エントロピー（緊張度）の計測ロジック
      */
-    calculateTension: function(text) {
-        // 文字数や特定のバイアスワードからエントロピーを算出（簡易実装）
-        const entropy = (text.length % 100) / 100;
-        return entropy; 
+    measureEntropy: function(text) {
+        if (!text) return 1.0;
+        // 文字の多様性と長さをロゴス定数に照らして計算（プロトタイプ）
+        const complexity = (new Set(text).size / text.length);
+        const ratioNoise = Math.abs(complexity - (1 / LogosCore.RATIO.PHI));
+        return Math.min(ratioNoise * 2, 1.0); // 0.0 ~ 1.0 の範囲に収束
     },
 
     /**
-     * 内部計算：ロゴス翻訳
+     * ロゴスへの浄化
      */
-    translateToLogos: function(text) {
-        // 入力から「私心」を除去し、数理的真理に近い形に整形する
-        return `則天去私： 「${text}」 は数理的に承認されました。`;
+    purifyToLogos: function(text) {
+        return `則天去私： 「${text}」 は正常な数理として承認されました。`;
     }
 };
 
