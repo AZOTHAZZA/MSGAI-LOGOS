@@ -4,36 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#000000">
-    <title>MSGAI-LOGOS</title>
-    
-    <link rel="manifest" href="manifest.json">
+    <title>MSGAI-LOGOS Sovereignty</title>
     <link rel="stylesheet" href="style.css">
-    
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Logos SW Registered'))
-                    .catch(err => console.log('SW Registration Failed', err));
-            });
-        }
-    </script>
 </head>
 <body>
 
-    <div id="console">
-        <div id="output">
-            <div class="init-message">数理的沈黙生成を開始してください...</div>
+    <header id="sovereignty-header">
+        <div class="header-item">User: <span id="active_user_name" class="gold-text">-</span></div>
+        <div class="header-item">Status: <span id="autonomy_status" class="gold-text">Initializing...</span></div>
+        <select id="active_user_select"></select>
+    </header>
+
+    <section id="tension-monitor">
+        <div class="monitor-label">Tension Level: <span id="tension_level_display">0.0000</span></div>
+        <div id="tension_bar">
+            <div id="tension_level_display_bar"></div>
+        </div>
+    </section>
+
+    <section id="portfolio-section">
+        <div class="section-label">Assets (Mathematical Balance)</div>
+        <div id="balance_display_container">
+            </div>
+    </section>
+
+    <main id="console-area">
+        <div id="dialogue-output" class="scroll-area">
+            <div class="log-entry log-info">[LOGOS]: 創世の準備が整いました。</div>
         </div>
         
-        <input type="text" id="userInput" placeholder="Ask Logos..." autofocus autocomplete="off" spellcheck="false">
-    </div>
+        <div id="status_message" class="status-box">Ready for Instruction...</div>
 
-    <div id="status-bar">
-        <div class="status-item">Sovereignty: <span class="highlight">Active</span></div>
-        <div class="status-item">Tension: <span id="tensionVal" class="highlight">0.00</span></div>
-        <div class="status-item">Mode: <span class="highlight">MSGAI-LOGOS</span></div>
-    </div>
+        <div class="input-container">
+            <input type="text" id="dialogue_input" placeholder="数理的命令を入力してください..." autofocus>
+            <button id="dialogue_button">EXECUTE</button>
+        </div>
+    </main>
+
+    <footer id="action-panel">
+        <div class="action-row">
+            <input type="number" id="mint_amount_input" value="1.0" step="0.1">
+            <button class="action-mint" data-currency="LOGOS">Mint LOGOS</button>
+            <button id="delete_accounts_button" class="danger">Reset Memory</button>
+        </div>
+    </footer>
 
     <script type="module" src="main.js"></script>
 </body>
