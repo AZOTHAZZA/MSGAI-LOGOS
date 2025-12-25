@@ -14,7 +14,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // パスを ./sw.js と明示
+                // Service Worker自体の登録（ルートに存在することを想定）
                 navigator.serviceWorker.register('./sw.js')
                     .then(reg => console.log('[LOGOS] Persistence Active: ', reg.scope))
                     .catch(err => console.log('[LOGOS] Persistence Failed: ', err));
@@ -46,10 +46,10 @@
 
     <main id="console-area">
         <div id="dialogue-output" class="scroll-area">
-            <div class="log-entry log-info">[LOGOS]: 宇宙の理を展開中...</div>
+            <div class="log-entry log-info">[LOGOS]: 物理パスを同期中...</div>
         </div>
         
-        <div id="status_message" class="status-box">Awaiting Synchronization...</div>
+        <div id="status_message" class="status-box">Awaiting Ignition...</div>
 
         <div class="input-container">
             <input type="text" id="dialogue_input" 
@@ -71,6 +71,6 @@
         </div>
     </footer>
 
-    <script type="module" src="./main.js"></script>
+    <script type="module" src="./app/main.js"></script>
 </body>
 </html>
