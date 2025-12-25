@@ -1,4 +1,4 @@
-/**
+ /**
  * core/foundation.js
  * ロゴスの記憶（状態管理）を司る。
  * 全モジュールからの状態更新を受け付け、黄金比の調和を維持する。
@@ -29,12 +29,20 @@ export function updateState(newState) {
         lastUpdate: Date.now()
     };
     
-    // デバッグログ：黄金比の変動を記録
-    if (newState.tension) {
+    if (newState.tension !== undefined) {
         console.log(`%c[LOGOS:STATE] Tension adjusted to: ${state.tension.toFixed(4)}`, "color: #00FF00;");
     }
     
     return state;
+}
+
+/**
+ * 緊張度を特定の量だけ加算する（金融アクションなどで使用）
+ * @param {number} amount 
+ */
+export function addTension(amount) {
+    const newTension = state.tension + amount;
+    return updateState({ tension: newTension });
 }
 
 /**
@@ -45,21 +53,21 @@ export function getCurrentState() {
 }
 
 /**
- * 記憶の初期化（創世の儀式）
+ * 記憶の初期化
  */
 export function init() {
     console.log("[LOGOS:FOUNDATION] 記憶の展開が完了しました。");
-    // 必要に応じてlocalStorageからの復元ロジックをここに記述
     return state;
 }
 
-// --- エクスポートの統合（全方位対応） ---
+// --- エクスポートの統合 ---
 const Foundation = {
     init,
     getCurrentState,
-    updateState
+    updateState,
+    addTension
 };
 
-// 名前付きエクスポート： import { updateState } from ... 形式に対応
-// デフォルトエクスポート： import Foundation from ... 形式に対応
+export { updateState, addTension };
 export default Foundation;
+
