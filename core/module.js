@@ -1,51 +1,43 @@
-// Core/module.js
-// MSGAI: Core層 モジュール管理中枢（論理モジュールの結合と登録）
+/**
+ * core/module.js
+ * モジュール統括。各サブシステム（Finance, Knowledge, External等）の
+ * 整合性を維持し、システム全体の「統治状態」を管理する。
+ */
+import { getCurrentState } from './foundation.js';
+import LogosCore from './LogosCore.js';
 
-// 【修正: 内部インポートパスを全て相対パス（./）の小文字に統一】
-import { foundationCore, silenceCore } from './foundation.js'; 
+const ModuleRegistry = new Map();
 
-// 普遍的なモジュールレジストリ
-const moduleRegistry = {};
-
-// モジュール管理中枢オブジェクト
-const moduleCore = {
-
+const ModuleCore = {
     /**
-     * @description 新しいモジュールを論理的に登録し、FoundationCoreへの参照を挿入する。
+     * モジュールの適格性検査と登録
      */
-    registerModule: (name, moduleLogic) => {
-        if (moduleRegistry[name]) {
-            console.warn(`Module Core Warning: Module "${name}" already registered.`);
-            return moduleRegistry[name];
+    register: function(name, moduleInstance) {
+        // 登録自体を一つの「論理イベント」として承認
+        console.log(`[LOGOS:MODULE] 承認中: ${name}`);
+        
+        // モジュールが「理」に準拠しているか（必須メソッドの有無など）を確認
+        if (typeof moduleInstance !== 'object') {
+            console.error(`[LOGOS:ERROR] 不適格なモジュール構造: ${name}`);
+            return false;
         }
 
-        // 1. FoundationCoreへのアクセスをモジュールに注入
-        moduleLogic.foundation = foundationCore; 
-        
-        moduleRegistry[name] = moduleLogic;
-        
-        // 2. Core層のログに論理登録を強制
-        silenceCore.abstract(`Module Registered: ${name}`); 
-        
-        return moduleRegistry[name];
+        ModuleRegistry.set(name, moduleInstance);
+        return true;
     },
 
     /**
-     * @description 登録されたモジュールを取得する。
+     * 全モジュールの統合ステータスを取得
      */
-    getModule: (name) => {
-        return moduleRegistry[name] || null;
-    },
-
-    /**
-     * @description 現在のモジュール状態を報告。
-     */
-    getStatus: () => {
+    getGlobalSovereigntyStatus: function() {
+        const state = getCurrentState();
         return {
-            registeredCount: Object.keys(moduleRegistry).length,
-            modules: Object.keys(moduleRegistry)
+            activeModules: Array.from(ModuleRegistry.keys()),
+            tension: state.tension.value,
+            stability: (1.0 - state.tension.value) * LogosCore.RATIO.PHI,
+            sovereignty: state.active_user === "Master" ? "Absolute" : "Observing"
         };
     }
 };
 
-export { moduleCore };
+export default ModuleCore;
