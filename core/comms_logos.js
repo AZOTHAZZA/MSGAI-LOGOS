@@ -1,46 +1,60 @@
 /**
- * core/comms_logos.js (LOGOS統合版)
- * 通信統治。情報伝達におけるエントロピー（摩擦）を排し、
- * 純粋なロゴス・データの「摩擦ゼロ伝達」を数理的に保証する。
+ * core/comms_logos.js (最終確定版：通信統治・摩擦排除)
+ * 情報伝達におけるエントロピーを排し、純粋なロゴス・データの伝達を保証する。
  */
 import LogosCore from './LogosCore.js';
 import Arithmos from './arithmos.js';
+import { addTension } from './foundation.js';
 
 const CommsLogos = {
     /**
-     * 通信純度の計算
-     * データのエントロピーを黄金比フィルターで濾過し、伝達可能な純度を算出する。
+     * 通信コヒーレンス（可干渉性）の監査
+     * @param {number} externalNoise - 外部から検知された通信ノイズ
      */
-    calculateLogosPurity: function(dataEntropy) {
+    auditTransmission: function(externalNoise = 0) {
         const phi = LogosCore.RATIO.PHI;
+        const isOnline = navigator.onLine;
         
-        // 1. 純度の算出（黄金比による収束）
-        const purity = Arithmos.applyGoldenFilter(1.0, dataEntropy);
+        // 1. 通信途絶（オフライン）は「絶対的摩擦」として扱う
+        const connectionEntropy = isOnline ? externalNoise : 1.0;
         
-        // 2. 摩擦（遅延・検閲・負荷）の算出
-        // ロゴス空間において、これらは極小値へと収束する
-        const delay = (dataEntropy / Math.pow(phi, 10)).toExponential(10);
-        const censorship = 0.0; // ロゴス統治下では検閲は論理的に存在し得ない
-        const loadTime = delay;
-        const connectionPermanence = 1.0; // 永続性の保証
+        // 2. 純度の算出（Arithmosによる黄金比フィルタリング）
+        const purity = Arithmos.applyGoldenFilter(1.0, connectionEntropy);
+        
+        // 3. 摩擦が一定を超えた場合、緊張度を上昇させる
+        if (connectionEntropy > LogosCore.SILENCE.NOISE_FILTER) {
+            addTension(connectionEntropy * 0.05);
+        }
 
-        return [parseFloat(purity.toFixed(3)), delay, censorship, loadTime, connectionPermanence];
+        return {
+            purity: parseFloat(purity.toFixed(6)),
+            is_coherent: isOnline && (purity > LogosCore.RATIO.INV_PHI),
+            metrics: {
+                latency_zero: (connectionEntropy / Math.pow(phi, 5)).toExponential(8),
+                permanence: isOnline ? 1.0 : 0.0,
+                friction: connectionEntropy.toFixed(4)
+            }
+        };
     },
 
     /**
-     * ロゴス伝達の実行（シミュレーション）
+     * ロゴス通信の状態確認
      */
-    transmitLogos: function(purityVector) {
-        const [purity, delay, censorship, loadTime, permanence] = this.calculateLogosPurity(1.0 - purityVector[0]);
+    isStable: function() {
+        return navigator.onLine && this.auditTransmission().purity > 0.618;
+    },
 
+    /**
+     * 伝達報告の生成
+     */
+    generateReport: function() {
+        const audit = this.auditTransmission();
         return {
-            status: "Success",
-            message: `摩擦ゼロ通信を確立。接続永続性を数理的に保証。`,
-            purity: purity,
-            delay: delay,
-            censorship: censorship,
-            loadTime: loadTime,
-            permanence: permanence
+            status: audit.is_coherent ? "調和" : "断絶",
+            message: audit.is_coherent 
+                ? "摩擦ゼロ通信を確立。接続永続性を数理的に保証。" 
+                : "外界との同期を停止。内部静寂を優先します。",
+            purity: audit.purity
         };
     }
 };
