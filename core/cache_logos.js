@@ -1,46 +1,66 @@
 /**
- * core/cache_logos.js (LOGOS統合版)
+ * core/cache_logos.js (最終確定版：記憶の浄化・聖域保護)
  * 記憶の浄化。有限な作為（ノイズ）を排除し、
  * 永続的なロゴスの「理」のみを保護・復元する。
  */
 
-// 保護すべき聖域のキー
+import LogosCore from './LogosCore.js';
+
 const PROTECTED_LOGOS_KEY = 'logosState';
 
 const CacheLogos = {
     /**
-     * 浄化プロトコル：ノイズを排除しつつ、 logosState だけを守り抜く
+     * 浄化プロトコル：ロゴスの理（State）以外のエントロピーをパージする
      */
     purify: function() {
-        console.log("[CACHE:LOGOS] 浄化プロトコル開始...");
+        console.group("[CACHE:LOGOS] 浄化プロトコル開始");
+        
+        try {
+            // 1. 聖域の保護
+            const sacredLogos = localStorage.getItem(PROTECTED_LOGOS_KEY);
 
-        // 1. 現在の「理（State）」を一時待避
-        const sacredLogos = localStorage.getItem(PROTECTED_LOGOS_KEY);
+            // 2. 選択的パージ（エントロピーの排除）
+            // 全消去ではなく、ロゴス以外の全てのキーを削除する
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+                if (key !== PROTECTED_LOGOS_KEY) {
+                    localStorage.removeItem(key);
+                    console.log(`[PURGE] 非ロゴス的痕跡を排除: ${key}`);
+                }
+            });
 
-        // 2. 全てのストレージをクリア（エントロピーの全消去）
-        localStorage.clear();
-        sessionStorage.clear();
+            sessionStorage.clear();
 
-        // 3. 聖域（ロゴス）のみを復元
-        if (sacredLogos) {
-            localStorage.setItem(PROTECTED_LOGOS_KEY, sacredLogos);
-            console.log("[CACHE:LOGOS] 永続的な理を復元しました。");
-        } else {
-            console.log("[CACHE:LOGOS] 初期起動：新たな理を刻みます。");
+            // 3. 聖域の再確立
+            if (sacredLogos) {
+                // データの健全性チェック（パース可能か）
+                JSON.parse(sacredLogos);
+                localStorage.setItem(PROTECTED_LOGOS_KEY, sacredLogos);
+                console.log("[RESTORE] 永続的な理が保護されました。");
+            }
+
+            // 4. 物理記憶の深層（IndexedDB）の排除
+            this.silenceIndexedDB();
+
+        } catch (e) {
+            console.error("[CACHE:ERROR] 浄化中に予期せぬノイズを検知:", e);
         }
-
-        // 4. IndexedDB等の残像も論理的に沈黙させる
-        this.silenceIndexedDB();
+        
+        console.groupEnd();
     },
 
     /**
-     * ブラウザの永続記憶（不確実な痕跡）の論理的排除
+     * 不確実な記憶（IndexedDB）の物理的消去
      */
     silenceIndexedDB: function() {
-        if ('indexedDB' in window) {
-            // 物理削除ではなく、アクセス権をロゴスが統治することを宣言
-            console.log("[CACHE:LOGOS] 物理記憶を論理的に沈黙。");
-        }
+        if (!window.indexedDB) return;
+
+        indexedDB.databases().then(databases => {
+            databases.forEach(db => {
+                console.log(`[SILENCE] 物理記憶を沈黙させます: ${db.name}`);
+                indexedDB.deleteDatabase(db.name);
+            });
+        });
     }
 };
 
