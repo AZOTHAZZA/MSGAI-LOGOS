@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MSGAI-LOGOS</title>
+    <title>MSGAI-LOGOS | Sovereignty</title>
     <style>
+        /* 深淵なる沈黙の背景 */
         body {
             background-color: #000;
-            color: #d4af37; /* 黄金色：ロゴスの輝き */
-            font-family: 'Georgia', serif;
+            color: #d4af37; /* 黄金：ロゴスの色 */
+            font-family: 'Times New Roman', serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -17,43 +18,80 @@
             margin: 0;
             overflow: hidden;
         }
+
         #console {
-            width: 80%;
-            max-width: 600px;
+            width: 90%;
+            max-width: 500px;
             text-align: center;
+            transition: all 0.5s ease;
         }
+
+        /* 出力エリア：多通貨表示のために高さを自動調整 */
         #output {
-            height: 100px;
-            margin-bottom: 20px;
-            font-style: italic;
-            opacity: 0.8;
+            min-height: 150px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            font-size: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
+
+        /* 入力エリア：極限のミニマリズム */
         input {
             background: transparent;
             border: none;
-            border-bottom: 1px solid #d4af37;
+            border-bottom: 1px solid #333;
             color: #fff;
             width: 100%;
             text-align: center;
             outline: none;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
+            padding: 10px 0;
+            transition: border-bottom 0.5s;
         }
-        #status {
+
+        input:focus {
+            border-bottom: 1px solid #d4af37;
+        }
+
+        /* ステータスバー：画面最下部に固定 */
+        #status-bar {
             position: absolute;
-            bottom: 10px;
-            font-size: 0.7rem;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            font-size: 0.65rem;
             letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #444;
+        }
+
+        .highlight {
+            color: #d4af37;
+        }
+
+        /* モバイル対応の調整 */
+        @media (max-width: 600px) {
+            #console { width: 95%; }
+            #output { font-size: 0.9rem; }
         }
     </style>
 </head>
 <body>
 
     <div id="console">
-        <div id="output">数理的沈黙...</div>
-        <input type="text" id="userInput" placeholder="ロゴスを問い、沈黙を聴く" autofocus>
+        <div id="output">数理的沈黙生成を開始してください...</div>
+        
+        <input type="text" id="userInput" placeholder="Ask Logos..." autofocus autocomplete="off">
     </div>
 
-    <div id="status">LOGOS SOVEREIGNTY: ACTIVE | TENSION: <span id="tensionVal">0.00</span></div>
+    <div id="status-bar">
+        <span>Sovereignty: <span class="highlight">Active</span></span>
+        <span>Tension: <span id="tensionVal" class="highlight">0.00</span></span>
+        <span>Mode: <span class="highlight">MSGAI-LOGOS</span></span>
+    </div>
 
     <script type="module" src="main.js"></script>
 </body>
