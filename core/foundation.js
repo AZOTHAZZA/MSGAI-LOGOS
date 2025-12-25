@@ -1,12 +1,10 @@
- /**
+/**
  * core/foundation.js
  * ロゴスの記憶（状態管理）を司る。
- * 全モジュールからの状態更新を受け付け、黄金比の調和を維持する。
  */
 
 import LogosCore from './LogosCore.js';
 
-// --- 内部状態（記憶）の定義 ---
 let state = {
     tension: LogosCore.SILENCE.INITIAL_TENSION, // 0.05
     lastUpdate: Date.now(),
@@ -19,10 +17,9 @@ let state = {
 };
 
 /**
- * 状態を更新し、変更を全神経系へ波及させる
- * @param {Object} newState 
+ * 状態を更新
  */
-export function updateState(newState) {
+function updateState(newState) {
     state = {
         ...state,
         ...newState,
@@ -37,30 +34,31 @@ export function updateState(newState) {
 }
 
 /**
- * 緊張度を特定の量だけ加算する（金融アクションなどで使用）
- * @param {number} amount 
+ * 緊張度を加算
  */
-export function addTension(amount) {
+function addTension(amount) {
     const newTension = state.tension + amount;
     return updateState({ tension: newTension });
 }
 
 /**
- * 現在の状態（真実）を返す
+ * 現在の状態を返す
  */
-export function getCurrentState() {
+function getCurrentState() {
     return { ...state };
 }
 
 /**
  * 記憶の初期化
  */
-export function init() {
+function init() {
     console.log("[LOGOS:FOUNDATION] 記憶の展開が完了しました。");
     return state;
 }
 
-// --- エクスポートの統合 ---
+// --- エクスポートの統合（ここで一括定義することで重複を避ける） ---
+export { updateState, addTension, getCurrentState, init };
+
 const Foundation = {
     init,
     getCurrentState,
@@ -68,6 +66,4 @@ const Foundation = {
     addTension
 };
 
-export { updateState, addTension };
 export default Foundation;
-
