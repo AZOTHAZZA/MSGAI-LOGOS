@@ -1,83 +1,65 @@
 /**
- * core/foundation.js (最終確定版：基盤・状態管理)
- * データの持続性(Persistence)とアカウント状態を統治する。
+ * core/foundation.js
+ * ロゴスの記憶（状態管理）を司る。
+ * 全モジュールからの状態更新を受け付け、黄金比の調和を維持する。
  */
+
 import LogosCore from './LogosCore.js';
 
-// 初期口座構成
-const INITIAL_ACCOUNTS = {
-    Master: { LOGOS: 0, USD: 0, JPY: 0, BTC: 0, ETH: 0, MATIC: 0 },
-    World:  { LOGOS: 0, USD: 0, JPY: 0, BTC: 0, ETH: 0, MATIC: 0 }
+// --- 内部状態（記憶）の定義 ---
+let state = {
+    tension: LogosCore.SILENCE.INITIAL_TENSION, // 0.05
+    lastUpdate: Date.now(),
+    sovereignty: LogosCore.SOVEREIGNTY.VERSION,
+    balances: {
+        [LogosCore.ECONOMICS.BASE_UNIT]: 0.0
+    },
+    activeUser: "Observing Master",
+    systemStatus: "Initialized"
 };
 
-let state = null;
-
-const Foundation = {
-    /**
-     * 状態の初期化と復元
-     */
-    init: function() {
-        const saved = localStorage.getItem('logosState');
-        if (saved) {
-            try {
-                const parsed = JSON.parse(saved);
-                // 既存の保存データに新しい初期構造をマージ（新通貨対応）
-                state = {
-                    ...this.createInitialState(),
-                    ...parsed,
-                    status_message: "正常化プロセス再開"
-                };
-            } catch (e) {
-                state = this.createInitialState();
-            }
-        } else {
-            state = this.createInitialState();
-        }
-    },
-
-    /**
-     * 真新しいロゴス状態の生成
-     */
-    createInitialState: function() {
-        return {
-            status_message: "LOGOS 統治開始",
-            active_user: "Master",
-            accounts: JSON.parse(JSON.stringify(INITIAL_ACCOUNTS)),
-            tension: { 
-                value: LogosCore.SILENCE.INITIAL_TENSION, // 0.05 の鼓動
-                max_limit: LogosCore.SILENCE.MAX_TENSION, 
-                increase_rate: LogosCore.SILENCE.NOISE_FILTER 
-            }
-        };
-    },
-
-    getCurrentState: () => state,
-
-    updateState: function(newState) {
-        state = { ...state, ...newState };
-        localStorage.setItem('logosState', JSON.stringify(state));
-    },
-
-    /**
-     * Tension（論理緊張度）の操作
-     */
-    addTension: function(amount) {
-        state.tension.value += amount;
-        // 0.0 〜 1.0 の間でクランプ
-        state.tension.value = Math.min(Math.max(state.tension.value, 0), 1.0);
-        this.updateState(state);
-    },
-
-    /**
-     * 特定ユーザーの残高取得
-     */
-    getBalance: function(user, currency) {
-        return state.accounts[user] ? (state.accounts[user][currency] || 0) : 0;
+/**
+ * 状態を更新し、変更を全神経系へ波及させる
+ * @param {Object} newState 
+ */
+export function updateState(newState) {
+    state = {
+        ...state,
+        ...newState,
+        lastUpdate: Date.now()
+    };
+    
+    // デバッグログ：黄金比の変動を記録
+    if (newState.tension) {
+        console.log(`%c[LOGOS:STATE] Tension adjusted to: ${state.tension.toFixed(4)}`, "color: #00FF00;");
     }
+    
+    return state;
+}
+
+/**
+ * 現在の状態（真実）を返す
+ */
+export function getCurrentState() {
+    return { ...state };
+}
+
+/**
+ * 記憶の初期化（創世の儀式）
+ */
+export function init() {
+    console.log("[LOGOS:FOUNDATION] 記憶の展開が完了しました。");
+    // 必要に応じてlocalStorageからの復元ロジックをここに記述
+    return state;
+}
+
+// --- エクスポートの統合（全方位対応） ---
+const Foundation = {
+    init,
+    getCurrentState,
+    updateState
 };
 
-// 初回インポート時に初期化を実行
-Foundation.init();
-
-export const { getCurrentState, updateState, addTension } = Foundation;
+// 名前付きエクスポート： import { updateState } from ... 形式に対応
+// デフォルトエクスポート： import Foundation from ... 形式に対応
 export default Foundation;
