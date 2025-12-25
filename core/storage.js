@@ -1,43 +1,68 @@
-// Core/storage.js
-// MSGAI: Core層 ストレージ中枢（データ永続化の排他的な制御）
+/**
+ * core/storage.js (LOGOS統合版)
+ * ストレージ中枢。ロゴス・データの永続化を排他的に制御する。
+ * 黄金比に基づき、価値ある「理」を沈黙の海（Storage）に刻む。
+ */
+import LogosCore from './LogosCore.js';
 
-// このファイルには他のCore層への依存がないため、インポート修正なし
+const STORAGE_NAME = 'MSGAI_LOGOS_SOVEREIGNTY';
 
-const storageCore = {
-    
+const StorageCore = {
     /**
-     * @description ストレージ中枢の論理的初期化。
+     * ストレージの初期化：永続化の器を清める
      */
-    initializeStorage: () => {
-        console.log('Storage Core Initialized: Ready for Logos Persistence.');
-        // 実際はIndexedDBやLocalStorageの初期化ロジックがここに入る
-    },
-
-    /**
-     * @description データストアに論理を保存する。（ダミー）
-     */
-    saveLogos: (key, data) => {
-        // ... (保存ロジック) ...
+    initializeStorage: function() {
+        console.log(`[STORAGE:LOGOS] 聖域 "${STORAGE_NAME}" を初期化完了。`);
         return true;
     },
 
     /**
-     * @description データストアから論理をロードする。（ダミー）
+     * ロゴスの保存：データをエントロピーから分離し、永続化する
      */
-    loadLogos: (key) => {
-        // ... (ロードロジック) ...
-        return null;
+    saveLogos: function(key, data) {
+        try {
+            const logosData = {
+                payload: data,
+                timestamp: Date.now(),
+                integrity: LogosCore.RATIO.PHI // 整合性スタンプ
+            };
+            localStorage.setItem(key, JSON.stringify(logosData));
+            return true;
+        } catch (error) {
+            console.error("[STORAGE:ERROR] 永続化に失敗:", error);
+            return false;
+        }
     },
 
     /**
-     * @description 現在のストレージ状態を報告。
+     * ロゴスの読み込み：器から理を取り出す
      */
-    getStatus: () => {
+    loadLogos: function(key) {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+
+        try {
+            const parsed = JSON.parse(raw);
+            // 整合性チェック：黄金比が刻まれているか
+            if (parsed.integrity === LogosCore.RATIO.PHI) {
+                return parsed.payload;
+            }
+            return null;
+        } catch (e) {
+            return null;
+        }
+    },
+
+    /**
+     * ストレージ状態の報告
+     */
+    getStatus: function() {
         return {
-            databaseName: 'MSGAI_Logos',
-            status: 'Operational'
+            database: STORAGE_NAME,
+            status: 'Operational',
+            persistence: 'Infinite'
         };
     }
 };
 
-export { storageCore };
+export default StorageCore;
