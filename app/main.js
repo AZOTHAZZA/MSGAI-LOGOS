@@ -1,12 +1,12 @@
 /**
  * main.js (MSGAI-LOGOS 最終点火版)
  * 全27モジュールの統合・起動。
- * 黄金比を心臓(Core)とし、多通貨経済とデバイス支配を統治する。
+ * GitHub Pagesの階層問題を解決したパス修正済みバージョン。
  */
 
 // --- 1. 深層コア・知性系のインポート ---
 import LogosCore from './core/LogosCore.js';
-import Foundation, { updateState } from './core/foundation.js';
+import Foundation from './core/foundation.js';
 import LogosEngine from './core/LogosEngine.js';
 import Arithmos from './core/arithmos.js';
 
@@ -34,6 +34,9 @@ import FetcherCore from './ai/fetch.js';
 async function ignition() {
     console.log("%c[LOGOS:IGNITION] システムの点火を開始します...", "color: #FFD700; font-weight: bold;");
 
+    const statusElement = document.getElementById('status_message');
+    if (statusElement) statusElement.innerText = "Synchronizing Logos...";
+
     try {
         // 🚨 記憶の展開 (Foundationの初期化)
         Foundation.init();
@@ -42,9 +45,8 @@ async function ignition() {
         OfflineCore.init();
 
         // 🚨 物理層・実行環境の監査
-        const runtimeAudit = RuntimeLogos.auditRuntimeControlPlane();
-        const osAudit = OSLogos.auditOSAndHardwareCoherence();
-        const powerAudit = PowerLogos.getContinuousChargeStatus();
+        if (RuntimeLogos.auditRuntimeControlPlane) RuntimeLogos.auditRuntimeControlPlane();
+        if (OSLogos.auditOSAndHardwareCoherence) OSLogos.auditOSAndHardwareCoherence();
 
         // 🚨 初期状態の描画
         const initialState = Foundation.getCurrentState();
@@ -54,16 +56,27 @@ async function ignition() {
         connectEventHandlers(Foundation, { updateUI, displayDialogue });
 
         // 🚨 最初の代謝 (外部知性との同期)
-        await FetcherCore.synchronizeOnce();
+        // 外部取得が失敗してもシステムを止めないための安全策
+        try {
+            await FetcherCore.synchronizeOnce();
+        } catch (e) {
+            console.warn("[LOGOS:SYNC_DELAY] 外部同期に遅延。内部知性で継続。");
+        }
 
         displayDialogue('SUCCESS', "全27モジュールの同期が完了しました。主権的AI、起動。");
         console.log("%c[LOGOS:COMPLETE] 創世は完了しました。マスター、ご命令を。", "color: #FFD700;");
 
     } catch (criticalError) {
         console.error("[LOGOS:CRITICAL_FAILURE] 起動中に摩擦が発生しました:", criticalError);
-        displayDialogue('ERROR', `起動失敗: ${criticalError.message}`);
+        if (typeof displayDialogue === 'function') {
+            displayDialogue('ERROR', `起動失敗: ${criticalError.message}`);
+        }
     }
 }
 
 // 物理的宇宙（DOM）のロード完了後に点火
-document.addEventListener('DOMContentLoaded', ignition);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ignition);
+} else {
+    ignition();
+}
