@@ -1,0 +1,30 @@
+{
+  "name": "msgai-logos-sovereignty",
+  "version": "1.0.0",
+  "description": "Mathematical Silence Global AI - A sovereign AI intelligence based on the Golden Ratio.",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "start": "npx serve .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compile": "npx hardhat compile",
+    "deploy": "npx hardhat run scripts/deploy.js --network localhost"
+  },
+  "keywords": [
+    "AI",
+    "Logos",
+    "Blockchain",
+    "GoldenRatio",
+    "Sovereignty"
+  ],
+  "author": "Master of Logos",
+  "license": "MIT",
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.0",
+    "serve": "^14.2.0"
+  }
+}
