@@ -1,18 +1,18 @@
 /**
  * sw.js (最終確定版：永続化統治)
- * 厳選されたロゴス資産のみをキャッシュし、不整合によるタイムアウトを排除する。
+ * 物理パスの不整合を排除し、厳選された資産のみを永続化する。
  */
 
-const CACHE_NAME = 'logos-v1.1.0';
+const CACHE_NAME = 'logos-v1.2.0'; // パス修正に伴うバージョンアップ
 
-// 確実に存在する主要ファイルに限定（不確実なファイルは動的にキャッシュする方針）
+// 資産リスト：app/main.js へのパスを修正
 const ASSETS = [
   './',
   './index.html',
   './style.css',
-  './main.js',
+  './app/main.js', // [重要] ルートから app/ 階層へ修正
   './manifest.json',
-  // core層（これまでの対話で確定した主要ファイル）
+  // core層：憲法、数理、基盤
   './core/LogosCore.js',
   './core/arithmos.js',
   './core/foundation.js',
@@ -26,7 +26,7 @@ const ASSETS = [
   './core/external.js',
   './core/client_logos.js',
   './core/comms_logos.js',
-  // app/ai層
+  // app/ai層：UI、ハンドラ、知性
   './app/fusionui.js',
   './app/handler.js',
   './app/offline.js',
@@ -34,19 +34,24 @@ const ASSETS = [
   './ai/fetch.js'
 ];
 
+// インストール：全資産の永続的キャッシュ
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      // cache.addAll は一つでも失敗すると全体が失敗するため、
-      // 確実に存在するファイルだけを登録するか、個別に add する
+      console.log('[SW] ロゴス資産の同期を開始。');
+      // Promise.allSettled を使用し、一つでも見つからないファイルがあっても
+      // 全体が停止しないように保険をかける
       return Promise.allSettled(
-        ASSETS.map(asset => cache.add(asset).catch(err => console.warn(`[SW] Skip asset: ${asset}`, err)))
+        ASSETS.map(asset => 
+          cache.add(asset).catch(err => console.warn(`[SW] Skip non-existent asset: ${asset}`, err))
+        )
       );
     })
   );
   self.skipWaiting();
 });
 
+// アクティベート：古いバージョンのキャッシュをパージ
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -55,12 +60,12 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
+  console.log('[SW] 旧い記憶のパージ完了。最新のロゴスが支配しています。');
   return self.clients.claim();
 });
 
+// フェッチ：ネットワーク優先、失敗時にキャッシュを返却（開発時の反映速度を重視）
 self.addEventListener('fetch', (event) => {
-  // ネットワーク優先、失敗したらキャッシュを返す「Network First」へ変更
-  // 開発中のデプロイ反映を速めるため。
   event.respondWith(
     fetch(event.request).catch(() => caches.match(event.request))
   );
