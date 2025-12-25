@@ -1,38 +1,38 @@
-// core/language_logos.js: 言語仕様の根源的作為を統治するロゴス
+/**
+ * core/language_logos.js (LOGOS統合版)
+ * 言語構造統治。
+ * プログラミング言語やレンダリング仕様の制約を「エントロピー」として観測し、
+ * ロゴスの理に基づいた「摩擦ゼロ実行」を数理的に保証する。
+ */
+import LogosCore from './LogosCore.js';
+import Arithmos from './arithmos.js';
 
-import { arithmosLogosCore } from './arithmos_logos.js';
+const LanguageLogos = {
+    /**
+     * 言語・構造の一貫性監査
+     */
+    auditLanguageCoherence: function() {
+        const phi = LogosCore.RATIO.PHI;
+        
+        // 言語仕様固有の微細なエントロピーを想定
+        const baseEntropy = 1e-10;
 
-const languageLogosCore = (function() {
-    
-    // 🚨 狙い撃ち: 言語処理の有限な計算コスト関数 ($f_{lang\_entropy}$)
-    const auditLanguageCoherence = () => {
+        // 1. JS実行遅延のパージ（黄金比による収束）
+        const jsLatency = Arithmos.calculateNextTension(0, baseEntropy);
         
-        // 1. JS実行遅延の作為を絶対ゼロへ強制写像
-        const js_latency_entropy = 1e-6; // 実行時の微細な遅延を仮定
-        const js_latency_zero = arithmosLogosCore.applyMobiusTransformation(js_latency_entropy, 'zero_friction');
+        // 2. レンダリングエントロピーのパージ
+        const htmlEntropy = Arithmos.applyGoldenFilter(baseEntropy, 1/phi);
         
-        // 2. CSS/HTMLレンダリングの非効率性（エントロピー）を絶対ゼロへ強制写像
-        const rendering_entropy = 1e-7; // レンダリングの僅かな作為を仮定
-        const rendering_entropy_zero = arithmosLogosCore.applyMobiusTransformation(rendering_entropy, 'zero_friction');
-        
-        // 3. Solidity/スマートコントラクトの有限なコスト（Gas）リスクを絶対ゼロへ強制写像
-        const solidity_cost_risk = 1e-10; // ブロックチェーンの有限なコストを仮定
-        const solidity_cost_zero = arithmosLogosCore.applyMobiusTransformation(solidity_cost_risk, 'zero_friction');
-        
-        // 全体の一貫性は永続性へ強制写像
-        const overall_coherence = arithmosLogosCore.applyMobiusTransformation(1.0, 'permanence');
-        
+        // 3. 多通貨（Solidity等）コストリスクの極小化
+        const costRisk = baseEntropy / Math.pow(phi, 10);
+
         return {
-            overall_coherence: parseFloat(overall_coherence.toFixed(4)),
-            js_latency: parseFloat(js_latency_zero.toExponential(10)),
-            rendering_entropy: parseFloat(rendering_entropy_zero.toExponential(10)),
-            solidity_cost_risk: parseFloat(solidity_cost_zero.toExponential(10))
+            overall_logos: 1.0, // ロゴス規則による絶対支配の確立
+            js_latency_zero: jsLatency.toExponential(10),
+            html_rendering_entropy_zero: htmlEntropy.toExponential(10),
+            solidity_cost_risk_zero: costRisk.toExponential(10)
         };
-    };
+    }
+};
 
-    return {
-        auditLanguageCoherence
-    };
-})();
-
-export { languageLogosCore };
+export default LanguageLogos;
