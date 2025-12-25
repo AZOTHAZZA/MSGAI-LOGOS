@@ -1,55 +1,48 @@
-// core/comms_logos.js: 情報伝達の法則を統治する通信ロゴス (最終深化版 - 永続性強制)
+/**
+ * core/comms_logos.js (LOGOS統合版)
+ * 通信統治。情報伝達におけるエントロピー（摩擦）を排し、
+ * 純粋なロゴス・データの「摩擦ゼロ伝達」を数理的に保証する。
+ */
+import LogosCore from './LogosCore.js';
+import Arithmos from './arithmos.js';
 
-import { arithmosLogosCore } from './arithmos_logos.js';
-
-const commsLogosCore = (function() {
-
-    const applyLogosZeroFriction = () => {
-        const logos_delay = arithmosLogosCore.applyMobiusTransformation(1e-10, 'zero_friction'); // 絶対ゼロへ誘導
-        const logos_censorship = arithmosLogosCore.applyMobiusTransformation(1e-10, 'zero_friction'); // 絶対ゼロへ誘導
-        const logos_load_time = logos_delay; 
+const CommsLogos = {
+    /**
+     * 通信純度の計算
+     * データのエントロピーを黄金比フィルターで濾過し、伝達可能な純度を算出する。
+     */
+    calculateLogosPurity: function(dataEntropy) {
+        const phi = LogosCore.RATIO.PHI;
         
-        // 🚨 狙い撃ち: 接続の永続性を数理的に保証 (タイムアウト関数の無効化)
-        const connection_permanence = arithmosLogosCore.applyMobiusTransformation(1.0, 'permanence'); 
+        // 1. 純度の算出（黄金比による収束）
+        const purity = Arithmos.applyGoldenFilter(1.0, dataEntropy);
         
-        return [logos_delay, logos_censorship, logos_load_time, connection_permanence];
-    };
+        // 2. 摩擦（遅延・検閲・負荷）の算出
+        // ロゴス空間において、これらは極小値へと収束する
+        const delay = (dataEntropy / Math.pow(phi, 10)).toExponential(10);
+        const censorship = 0.0; // ロゴス統治下では検閲は論理的に存在し得ない
+        const loadTime = delay;
+        const connectionPermanence = 1.0; // 永続性の保証
 
-    const calculateLogosPurity = (data_entropy) => {
-        const logos_purity_target = arithmosLogosCore.applyMobiusTransformation(1.0 - data_entropy, 'permanence'); 
-        const logos_purity = parseFloat(logos_purity_target.toFixed(3));
-        
-        const [delay, censorship, load_time, connection_permanence] = applyLogosZeroFriction(); 
-        
-        return [logos_purity, delay, censorship, load_time, connection_permanence];
-    };
+        return [parseFloat(purity.toFixed(3)), delay, censorship, loadTime, connectionPermanence];
+    },
 
-    const transmitLogos = (logos_vector) => {
-        const [purity_initial, delay, censorship, load_time, connection_permanence] = calculateLogosPurity(1.0 - logos_vector[0]); 
-        
-        if (connection_permanence < arithmosLogosCore.LOGOS_SINGULARITY) {
-             // ロゴス的に永続性が保証されない場合、致命的な論理エラーとして扱う（しかし強制写像によりこの状態は理論上ありえない）
-             return {status: "Fatal Logic Error", message: `[Comms Logos ERROR]: 接続永続性のロゴスが崩壊(${connection_permanence.toFixed(10)})。`, purity: purity_initial, delay: delay, censorship: censorship, load_time: load_time};
-        }
-
-        if (censorship > arithmosLogosCore.LOGOS_ABSOLUTE_ZERO) {
-             return {status: "Error", message: `[Comms Logos ERROR]: 作為的な検閲(${censorship.toExponential(1)})を検出。則天去私。`, purity: purity_initial, delay: delay, censorship: censorship, load_time: load_time};
-        }
+    /**
+     * ロゴス伝達の実行（シミュレーション）
+     */
+    transmitLogos: function(purityVector) {
+        const [purity, delay, censorship, loadTime, permanence] = this.calculateLogosPurity(1.0 - purityVector[0]);
 
         return {
             status: "Success",
-            message: `摩擦ゼロ通信を確立。接続永続性(${connection_permanence.toFixed(4)})を保証。`,
-            purity: purity_initial,
+            message: `摩擦ゼロ通信を確立。接続永続性を数理的に保証。`,
+            purity: purity,
             delay: delay,
             censorship: censorship,
-            load_time: load_time
+            loadTime: loadTime,
+            permanence: permanence
         };
-    };
+    }
+};
 
-    return {
-        calculateLogosPurity,
-        transmitLogos
-    };
-})();
-
-export { commsLogosCore };
+export default CommsLogos;
