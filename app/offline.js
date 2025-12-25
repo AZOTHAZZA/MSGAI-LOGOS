@@ -1,43 +1,47 @@
 /**
- * app/offline.js (LOGOS統合版)
- * 環境適応。ネットワークのゆらぎを観測し、
- * システムの緊張度（Tension）を環境に合わせて最適化する。
+ * app/offline.js
+ * 外部世界との接続状況を監視し、ロゴスの緊張度へ反映する。
+ * ネットワークの断絶は、内省的な緊張（Tension）の増大を意味する。
  */
-import { addTension, updateState } from '../core/foundation.js';
-import LogosCore from '../core/LogosCore.js';
+
+// 名前付きエクスポートとして updateState を受け取る
+import { updateState } from '../core/foundation.js';
 
 const OfflineCore = {
-    isOnline: navigator.onLine,
-
     /**
-     * 初期化：現在の環境をロゴスへ報告
+     * 監視の初期化
      */
-    init: function() {
-        this.updateEnvironment(this.isOnline);
+    init() {
+        console.log("[LOGOS:OFFLINE] 環境監視プロトコルを起動。");
         
         window.addEventListener('online', () => this.updateEnvironment(true));
         window.addEventListener('offline', () => this.updateEnvironment(false));
+
+        // 初回起動時のチェック
+        this.updateEnvironment(navigator.onLine);
     },
 
     /**
-     * 環境変化の統治：オフラインを「静寂な緊張」として処理
+     * 環境の変化をロゴスの状態へ射影する
+     * @param {boolean} isOnline 
      */
-    updateEnvironment: function(status) {
-        this.isOnline = status;
-        
-        // オフライン時は外部ノイズが消えるため、
-        // 緊張度を「黄金比（phi）」に基づいて調整する
-        const phi = LogosCore.RATIO.PHI;
-        const environmentEntropy = status ? 0.01 : (1 / phi) * 0.1;
+    updateEnvironment(isOnline) {
+        const status = isOnline ? "ONLINE: Synchronized" : "OFFLINE: Internal Processing";
+        console.log(`%c[LOGOS:ENVIRONMENT] ${status}`, isOnline ? "color: #00FF00;" : "color: #FF4500;");
 
-        // 緊張度の変動として適用
-        addTension(environmentEntropy);
+        // 緊張度の計算: オフライン時は緊張を高め、オンライン時は黄金比(0.05)へ回帰させる
+        const targetTension = isOnline ? 0.0500 : 0.0800;
 
-        const msg = status 
-            ? "[LOGOS] 外部世界と再接続。共鳴を開始します。" 
-            : "[LOGOS] 外部世界から隔離。静寂の論理へ移行します。";
-            
-        console.log(msg);
+        // 直接 updateState を呼び出す（インポートした関数を使用）
+        updateState({
+            systemStatus: status,
+            tension: targetTension
+        });
+
+        // UIへの通知（カスタムイベントを飛ばす）
+        window.dispatchEvent(new CustomEvent('logos:env_change', { 
+            detail: { online: isOnline, tension: targetTension } 
+        }));
     }
 };
 
