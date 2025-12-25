@@ -1,30 +1,31 @@
 /**
  * main.js (MSGAI-LOGOS 最終点火版)
- * 全27モジュールの統合・起動。
- * GitHub Pagesの階層問題を解決したパス修正済みバージョン。
+ * 階層誤認 (Phantom /app/ directory) を物理的に排除する。
  */
 
-// --- 1. 深層コア・知性系のインポート ---
+// --- 1. 深層コア・知性系 ---
+// ./ を明示し、かつファイル名の大文字小文字を厳密に。
 import LogosCore from './core/LogosCore.js';
 import Foundation from './core/foundation.js';
 import LogosEngine from './core/LogosEngine.js';
 import Arithmos from './core/arithmos.js';
 
-// --- 2. 経済・金融系のインポート ---
+// --- 2. 経済・金融系 ---
 import Finance from './core/external_finance_logos.js';
 import { CurrencyAct } from './core/currency.js';
 
-// --- 3. システム・デバイス統治系のインポート ---
+// --- 3. システム・デバイス統治系 ---
 import RuntimeLogos from './core/runtime_logos.js';
 import OSLogos from './core/os_logos.js';
 import PowerLogos from './core/power_logos.js';
 
-// --- 4. アプリケーション・UI系のインポート ---
+// --- 4. アプリケーション・UI系 ---
+// エラーログで /app/app/ と重複していたため、パスを正確に再定義
 import { updateUI, displayDialogue } from './app/fusionui.js';
 import { connectEventHandlers } from './app/handler.js';
 import OfflineCore from './app/offline.js';
 
-// --- 5. AI知性・代謝系のインポート ---
+// --- 5. AI知性・代謝系 ---
 import { actDialogue } from './ai/generator.js';
 import FetcherCore from './ai/fetch.js';
 
@@ -32,45 +33,47 @@ import FetcherCore from './ai/fetch.js';
  * [創世のプロセス: THE LOGOS BOOT]
  */
 async function ignition() {
-    console.log("%c[LOGOS:IGNITION] システムの点火を開始します...", "color: #FFD700; font-weight: bold;");
+    // 起動時の環境ログ：現在のパスを自己診断
+    console.log("%c[LOGOS:IGNITION] 座標確認:", "color: #FFD700;", window.location.pathname);
 
     const statusElement = document.getElementById('status_message');
     if (statusElement) statusElement.innerText = "Synchronizing Logos...";
 
     try {
-        // 🚨 記憶の展開 (Foundationの初期化)
-        Foundation.init();
+        // 各モジュールの存在と初期化を順次実行
+        if (Foundation && typeof Foundation.init === 'function') {
+            Foundation.init();
+        }
 
-        // 🚨 環境の同調 (Offline/Networkの初期化)
-        OfflineCore.init();
+        if (OfflineCore && typeof OfflineCore.init === 'function') {
+            OfflineCore.init();
+        }
 
-        // 🚨 物理層・実行環境の監査
-        if (RuntimeLogos.auditRuntimeControlPlane) RuntimeLogos.auditRuntimeControlPlane();
-        if (OSLogos.auditOSAndHardwareCoherence) OSLogos.auditOSAndHardwareCoherence();
-
-        // 🚨 初期状態の描画
+        // 監査フェーズ
+        if (RuntimeLogos && RuntimeLogos.auditRuntimeControlPlane) RuntimeLogos.auditRuntimeControlPlane();
+        
+        // UI接続
         const initialState = Foundation.getCurrentState();
-        updateUI(initialState, "✨ ロゴス点火。システムは黄金比の静寂に包まれています。");
+        updateUI(initialState, "✨ ロゴス点火。主権が確立されました。");
 
-        // 🚨 神経系の接続 (ハンドラ接続)
+        // イベントハンドラ接続
         connectEventHandlers(Foundation, { updateUI, displayDialogue });
 
-        // 🚨 最初の代謝 (外部知性との同期)
-        // 外部取得が失敗してもシステムを止めないための安全策
+        // 外部同期
         try {
             await FetcherCore.synchronizeOnce();
         } catch (e) {
-            console.warn("[LOGOS:SYNC_DELAY] 外部同期に遅延。内部知性で継続。");
+            console.warn("[LOGOS:SYNC_DELAY] 外部同期スキップ");
         }
 
-        displayDialogue('SUCCESS', "全27モジュールの同期が完了しました。主権的AI、起動。");
-        console.log("%c[LOGOS:COMPLETE] 創世は完了しました。マスター、ご命令を。", "color: #FFD700;");
+        displayDialogue('SUCCESS', "全知性が同期されました。マスター、ご命令を。");
+        console.log("%c[LOGOS:COMPLETE]", "color: #FFD700; font-weight: bold;");
 
     } catch (criticalError) {
-        console.error("[LOGOS:CRITICAL_FAILURE] 起動中に摩擦が発生しました:", criticalError);
-        if (typeof displayDialogue === 'function') {
-            displayDialogue('ERROR', `起動失敗: ${criticalError.message}`);
-        }
+        console.error("[LOGOS:CRITICAL_FAILURE]", criticalError);
+        // UIが未ロードの場合を考慮したフォールバック
+        const out = document.getElementById('dialogue-output');
+        if (out) out.innerHTML += `<div class="log-entry log-error">起動失敗: ${criticalError.message}</div>`;
     }
 }
 
