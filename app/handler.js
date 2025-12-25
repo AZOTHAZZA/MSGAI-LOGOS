@@ -1,124 +1,92 @@
-// app/handler.js (HTML構造対応版)
-
 /**
- * UIとコアロジックのイベントハンドラを接続する関数
+ * app/handler.js (LOGOS統合版)
+ * 意志の伝達。UI上の操作をロゴスの作為へと変換する。
  */
-export function connectEventHandlers(Foundation, Currency, UI, Arithmos) {
-    let handlersConnected = 0;
+import LogosEngine from '../core/LogosEngine.js';
+import Finance from '../core/external_finance_logos.js';
+import { CurrencyAct } from '../core/currency.js';
+
+export function connectEventHandlers(Foundation, UI) {
+    console.log("[HANDLER:LOGOS] 意志の結合を開始...");
 
     // -----------------------------------------------------------
-    // 1. 通貨生成ボタン (Mint Currency) - 複数ボタン対応
+    // 1. 対話・知性・自動鋳造 (The Logos Process)
     // -----------------------------------------------------------
-    // 全てのミントボタンを取得 (mint-jpy, mint-usdなど)
-    const mintButtons = document.querySelectorAll('.action-mint');
-    const mintAmountInput = document.getElementById('mint_amount_input');
-    
-    mintButtons.forEach(button => {
-        if (button) {
-            button.addEventListener('click', () => {
-                try {
-                    const currency = button.getAttribute('data-currency'); // data-currencyから通貨を取得
-                    const amount = parseFloat(mintAmountInput.value);
-                    
-                    if (isNaN(amount) || amount <= 0) {
-                        UI.displayDialogue('ERROR', "有効な生成量を入力してください。");
-                        return;
-                    }
-                    
-                    // コア作為を実行
-                    Currency.actMintCurrency(currency, amount);
-                    
-                    // 状態を更新し、UIを再描画
-                    const state = Foundation.getCurrentState();
-                    const tensionInstance = Foundation.getTensionInstance();
-                    const matrix = new Arithmos.ControlMatrix(tensionInstance);
-                    UI.updateUI(state, Foundation.getMutableState().status_message, { intensity: matrix.intensity, rigor: matrix.rigor });
-                    
-                } catch (e) {
-                    UI.displayDialogue('ERROR', `作為失敗: ${e.message}`);
-                }
-            });
-            console.log(`[Handler]: ✅ 通貨生成ボタン (${button.id}) のリスナーを接続しました。`);
-            handlersConnected++;
-        }
-    });
-
-
-    // -----------------------------------------------------------
-    // 2. 口座削除/リセットボタン
-    // -----------------------------------------------------------
-    // 🌟 修正: IDを 'reset_core' から 'delete_accounts_button' に変更
-    const deleteAccountsButton = document.getElementById('delete_accounts_button');
-    if (deleteAccountsButton) {
-        deleteAccountsButton.addEventListener('click', () => {
-             const message = Foundation.deleteAccounts();
-             
-             // 状態を更新し、UIを再描画
-             const state = Foundation.getCurrentState();
-             const tensionInstance = Foundation.getTensionInstance();
-             const matrix = new Arithmos.ControlMatrix(tensionInstance);
-             UI.updateUI(state, message, { intensity: matrix.intensity, rigor: matrix.rigor });
-        });
-        console.log("[Handler]: ✅ 口座削除/リセットボタン ('delete_accounts_button') のリスナーを接続しました。");
-        handlersConnected++;
-    } else {
-        console.error("[Handler ERROR]: ❌ 口座削除ボタン ID 'delete_accounts_button' がDOMに見つかりません。");
-    }
-    
-    // -----------------------------------------------------------
-    // 3. その他の主要なボタンの接続（追加で接続が必要なもの）
-    // -----------------------------------------------------------
-    
-    // 内部送金ボタン
-    const internalTransferButton = document.getElementById('transfer_internal_button');
-    if (internalTransferButton) {
-        internalTransferButton.addEventListener('click', () => {
-            UI.displayDialogue('INFO', '内部送金作為を実行します (ロジック未実装)');
-            // TODO: Currency.actTransferInternal を呼び出すロジックを追加
-        });
-        console.log("[Handler]: ✅ 内部送金ボタンのリスナーを接続しました。");
-        handlersConnected++;
-    }
-
-    // 外部送金ボタン
-    const externalTransferButton = document.getElementById('transfer_external_button');
-    if (externalTransferButton) {
-        externalTransferButton.addEventListener('click', () => {
-            UI.displayDialogue('INFO', '外部送金作為を実行します (ロジック未実装)');
-            // TODO: Currency.actTransferExternal を呼び出すロジックを追加
-        });
-        console.log("[Handler]: ✅ 外部送金ボタンのリスナーを接続しました。");
-        handlersConnected++;
-    }
-    
-    // 対話実行ボタン
     const dialogueButton = document.getElementById('dialogue_button');
-    if (dialogueButton) {
-        dialogueButton.addEventListener('click', () => {
-            UI.displayDialogue('INFO', '対話作為を実行します (ロジック未実装)');
-            // TODO: 対話処理ロジックを追加
+    const dialogueInput = document.getElementById('dialogue_input');
+
+    if (dialogueButton && dialogueInput) {
+        dialogueButton.addEventListener('click', async () => {
+            const prompt = dialogueInput.value.trim();
+            if (!prompt) return;
+
+            UI.displayDialogue('INFO', `入力監査中: "${prompt}"`);
+
+            // 知性エンジンによる判定
+            const audit = LogosEngine.process(prompt);
+            
+            // 判定結果に基づき、通貨(LOGOS)を自動鋳造
+            const state = Foundation.getCurrentState();
+            const mintResult = CurrencyAct.mint(
+                state.accounts[state.active_user],
+                'LOGOS',
+                audit.purity,
+                audit.entropy
+            );
+
+            // 状態更新とUI反映
+            UI.displayDialogue('SUCCESS', audit.report);
+            UI.updateUI(Foundation.getCurrentState(), audit.report);
+            dialogueInput.value = '';
         });
-        console.log("[Handler]: ✅ 対話実行ボタンのリスナーを接続しました。");
-        handlersConnected++;
     }
-    
-    // アクティブユーザー切り替えドロップダウン
+
+    // -----------------------------------------------------------
+    // 2. 内部送金 (Internal Transfer)
+    // -----------------------------------------------------------
+    const transferButton = document.getElementById('transfer_internal_button');
+    if (transferButton) {
+        transferButton.addEventListener('click', () => {
+            const state = Foundation.getCurrentState();
+            const toUser = document.getElementById('transfer_to_user').value;
+            const currency = document.getElementById('transfer_currency').value;
+            const amount = parseFloat(document.getElementById('transfer_amount').value);
+
+            const result = Finance.transferInternal(state.active_user, toUser, currency, amount);
+            
+            if (result.success) {
+                UI.displayDialogue('SUCCESS', result.message);
+                UI.updateUI(Foundation.getCurrentState(), "資産移動完了");
+            } else {
+                UI.displayDialogue('ERROR', result.reason);
+            }
+        });
+    }
+
+    // -----------------------------------------------------------
+    // 3. 口座初期化 (Reset)
+    // -----------------------------------------------------------
+    const deleteButton = document.getElementById('delete_accounts_button');
+    if (deleteButton) {
+        deleteButton.addEventListener('click', () => {
+            if (confirm("全ての記憶（口座）を消去し、静寂へ戻りますか？")) {
+                const msg = Foundation.deleteAccounts();
+                UI.updateUI(Foundation.getCurrentState(), msg);
+                UI.displayDialogue('WARNING', "全記録が消去されました。");
+            }
+        });
+    }
+
+    // -----------------------------------------------------------
+    // 4. ユーザー切り替え
+    // -----------------------------------------------------------
     const userSelect = document.getElementById('active_user_select');
     if (userSelect) {
-        userSelect.addEventListener('change', (event) => {
-            const selectedUser = event.target.value;
-            Foundation.setActiveUser(selectedUser);
-            
-            // 状態を更新し、UIを再描画
-            const state = Foundation.getCurrentState();
-            const tensionInstance = Foundation.getTensionInstance();
-            const matrix = new Arithmos.ControlMatrix(tensionInstance);
-            UI.updateUI(state, `ユーザーを ${selectedUser} に切り替えました。`, { intensity: matrix.intensity, rigor: matrix.rigor });
+        userSelect.addEventListener('change', (e) => {
+            Foundation.setActiveUser(e.target.value);
+            UI.updateUI(Foundation.getCurrentState(), `統治対象を ${e.target.value} に変更。`);
         });
-        console.log("[Handler]: ✅ ユーザー切り替えリスナーを接続しました。");
-        handlersConnected++;
     }
 
-
-    console.log(`[Handler]: イベントハンドラ接続完了。合計 ${handlersConnected} 件を接続しました。`);
+    console.log("[HANDLER:LOGOS] 全ての神経接続が完了しました。");
 }
