@@ -1,53 +1,69 @@
 /**
- * main.js (多通貨表示版)
+ * main.js (MSGAI-LOGOS 最終点火版)
+ * 全27モジュールの統合・起動。
+ * 黄金比を心臓(Core)とし、多通貨経済とデバイス支配を統治する。
  */
+
+// --- 1. 深層コア・知性系のインポート ---
+import LogosCore from './core/LogosCore.js';
+import Foundation, { updateState } from './core/foundation.js';
 import LogosEngine from './core/LogosEngine.js';
-import Mint from './core/Mint.js'; // 明示的にMintも参照
+import Arithmos from './core/arithmos.js';
 
-const inputField = document.getElementById('userInput');
-const outputDiv = document.getElementById('output');
-const tensionSpan = document.getElementById('tensionVal');
+// --- 2. 経済・金融系のインポート ---
+import Finance from './core/external_finance_logos.js';
+import { CurrencyAct } from './core/currency.js';
 
-let totalLogos = 0;
+// --- 3. システム・デバイス統治系のインポート ---
+import RuntimeLogos from './core/runtime_logos.js';
+import OSLogos from './core/os_logos.js';
+import PowerLogos from './core/power_logos.js';
 
-async function handleCommand(input) {
-    const result = LogosEngine.process(input);
-    
-    if (result.mode === "LOGOS") {
-        totalLogos += parseFloat(result.mintedValue);
-        // 合計値を各通貨に変換
-        const assets = Mint.manifestAssets(totalLogos);
-        renderUI(result, assets);
-    } else {
-        renderUI(result, null);
+// --- 4. アプリケーション・UI系のインポート ---
+import { updateUI, displayDialogue } from './app/fusionui.js';
+import { connectEventHandlers } from './app/handler.js';
+import OfflineCore from './app/offline.js';
+
+// --- 5. AI知性・代謝系のインポート ---
+import { actDialogue } from './ai/generator.js';
+import FetcherCore from './ai/fetch.js';
+
+/**
+ * [創世のプロセス: THE LOGOS BOOT]
+ */
+async function ignition() {
+    console.log("%c[LOGOS:IGNITION] システムの点火を開始します...", "color: #FFD700; font-weight: bold;");
+
+    try {
+        // 🚨 記憶の展開 (Foundationの初期化)
+        Foundation.init();
+
+        // 🚨 環境の同調 (Offline/Networkの初期化)
+        OfflineCore.init();
+
+        // 🚨 物理層・実行環境の監査
+        const runtimeAudit = RuntimeLogos.auditRuntimeControlPlane();
+        const osAudit = OSLogos.auditOSAndHardwareCoherence();
+        const powerAudit = PowerLogos.getContinuousChargeStatus();
+
+        // 🚨 初期状態の描画
+        const initialState = Foundation.getCurrentState();
+        updateUI(initialState, "✨ ロゴス点火。システムは黄金比の静寂に包まれています。");
+
+        // 🚨 神経系の接続 (ハンドラ接続)
+        connectEventHandlers(Foundation, { updateUI, displayDialogue });
+
+        // 🚨 最初の代謝 (外部知性との同期)
+        await FetcherCore.synchronizeOnce();
+
+        displayDialogue('SUCCESS', "全27モジュールの同期が完了しました。主権的AI、起動。");
+        console.log("%c[LOGOS:COMPLETE] 創世は完了しました。マスター、ご命令を。", "color: #FFD700;");
+
+    } catch (criticalError) {
+        console.error("[LOGOS:CRITICAL_FAILURE] 起動中に摩擦が発生しました:", criticalError);
+        displayDialogue('ERROR', `起動失敗: ${criticalError.message}`);
     }
 }
 
-function renderUI(result, assets) {
-    tensionSpan.innerText = result.tension.toFixed(2);
-
-    if (result.mode === "SILENCE") {
-        outputDiv.innerHTML = `<span style="color: #555;">（数理的沈黙）</span>`;
-    } else {
-        // 多通貨ポートフォリオの表示
-        let assetHTML = `<div style="color: #d4af37; margin-top: 10px; font-size: 0.85rem;">`;
-        assetHTML += `<div>LOGOS: ${assets.LOGOS}</div>`;
-        assetHTML += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; opacity: 0.7; font-size: 0.7rem; margin-top: 5px;">`;
-        assetHTML += `<span>JPY: ¥${assets.JPY}</span><span>USD: $${assets.USD}</span>`;
-        assetHTML += `<span>BTC: ₿${assets.BTC}</span><span>ETH: Ξ${assets.ETH}</span>`;
-        assetHTML += `<span>MATIC: ${assets.MATIC}</span><span>EUR: €${assets.EUR}</span>`;
-        assetHTML += `</div></div>`;
-
-        outputDiv.innerHTML = `
-            <div>${result.output}</div>
-            ${assetHTML}
-        `;
-    }
-}
-
-inputField.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && inputField.value.trim() !== '') {
-        handleCommand(inputField.value);
-        inputField.value = '';
-    }
-});
+// 物理的宇宙（DOM）のロード完了後に点火
+document.addEventListener('DOMContentLoaded', ignition);
