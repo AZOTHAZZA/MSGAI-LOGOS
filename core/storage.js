@@ -1,68 +1,86 @@
-/**
- * core/storage.js (LOGOS統合版)
+ /**
+ * core/storage.js (最終確定版：永続化統治)
  * ストレージ中枢。ロゴス・データの永続化を排他的に制御する。
- * 黄金比に基づき、価値ある「理」を沈黙の海（Storage）に刻む。
  */
 import LogosCore from './LogosCore.js';
 
-const STORAGE_NAME = 'MSGAI_LOGOS_SOVEREIGNTY';
+const STORAGE_NAME = 'MSGAI_LOGOS_STATE';
 
 const StorageCore = {
     /**
-     * ストレージの初期化：永続化の器を清める
+     * データの永続化（刻印）
+     * @param {Object} data - 保存するステート全体
      */
-    initializeStorage: function() {
-        console.log(`[STORAGE:LOGOS] 聖域 "${STORAGE_NAME}" を初期化完了。`);
-        return true;
-    },
-
-    /**
-     * ロゴスの保存：データをエントロピーから分離し、永続化する
-     */
-    saveLogos: function(key, data) {
+    save: function(data) {
         try {
-            const logosData = {
-                payload: data,
+            const archive = {
+                version: LogosCore.SOVEREIGNTY.VERSION,
+                integrity: LogosCore.RATIO.PHI,
                 timestamp: Date.now(),
-                integrity: LogosCore.RATIO.PHI // 整合性スタンプ
+                state: data
             };
-            localStorage.setItem(key, JSON.stringify(logosData));
+            
+            const serialized = JSON.stringify(archive);
+            localStorage.setItem(STORAGE_NAME, serialized);
+            
+            // 保存の成功を「静寂」としてログ
             return true;
         } catch (error) {
-            console.error("[STORAGE:ERROR] 永続化に失敗:", error);
+            // 容量不足（QuotaExceededError）などの物理的限界
+            console.error("[STORAGE:FATAL] 物理的限界に到達:", error);
             return false;
         }
     },
 
     /**
-     * ロゴスの読み込み：器から理を取り出す
+     * データの復元（想起）
      */
-    loadLogos: function(key) {
-        const raw = localStorage.getItem(key);
+    load: function() {
+        const raw = localStorage.getItem(STORAGE_NAME);
         if (!raw) return null;
 
         try {
-            const parsed = JSON.parse(raw);
-            // 整合性チェック：黄金比が刻まれているか
-            if (parsed.integrity === LogosCore.RATIO.PHI) {
-                return parsed.payload;
+            const archive = JSON.parse(raw);
+            
+            // 1. 整合性（黄金比）の監査
+            if (archive.integrity !== LogosCore.RATIO.PHI) {
+                console.warn("[STORAGE] 非ロゴス的な改ざんを検知。");
+                return null;
             }
-            return null;
+
+            // 2. バージョンの適合性監査
+            if (archive.version !== LogosCore.SOVEREIGNTY.VERSION) {
+                console.info("[STORAGE] 過去の理を検知。移行プロセスが必要です。");
+                // 必要に応じてここで移行ロジックを呼ぶ
+            }
+
+            return archive.state;
         } catch (e) {
+            console.error("[STORAGE:ERROR] 記憶の復元に失敗:", e);
             return null;
         }
     },
 
     /**
-     * ストレージ状態の報告
+     * ストレージの浄化（忘却）
      */
-    getStatus: function() {
+    clear: function() {
+        localStorage.removeItem(STORAGE_NAME);
+        console.log("[STORAGE] 全ての記憶を沈黙に帰しました。");
+    },
+
+    /**
+     * 物理資源の観測
+     */
+    getMetrics: function() {
+        const used = encodeURI(JSON.stringify(localStorage)).length;
         return {
-            database: STORAGE_NAME,
-            status: 'Operational',
-            persistence: 'Infinite'
+            usage_bytes: used,
+            limit_status: used > 4000000 ? "限界接近" : "安定", // 5MB制限を想定
+            permanence: "Verified"
         };
     }
 };
 
 export default StorageCore;
+
