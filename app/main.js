@@ -1,49 +1,53 @@
 /**
- * main.js
- * MSGAI-LOGOS 統合制御スクリプト
+ * main.js (多通貨表示版)
  */
 import LogosEngine from './core/LogosEngine.js';
+import Mint from './core/Mint.js'; // 明示的にMintも参照
 
 const inputField = document.getElementById('userInput');
 const outputDiv = document.getElementById('output');
 const tensionSpan = document.getElementById('tensionVal');
 
-// 内部状態（セッション中の累積価値）
-let sessionTotalValue = 0;
+let totalLogos = 0;
 
 async function handleCommand(input) {
-    // 1. ロゴスエンジンによる処理（対話・緊張度・価値生成を一括実行）
     const result = LogosEngine.process(input);
     
-    // 2. 状態の更新
     if (result.mode === "LOGOS") {
-        sessionTotalValue += parseFloat(result.mintedValue);
+        totalLogos += parseFloat(result.mintedValue);
+        // 合計値を各通貨に変換
+        const assets = Mint.manifestAssets(totalLogos);
+        renderUI(result, assets);
+    } else {
+        renderUI(result, null);
     }
-
-    // 3. UIへの反映（則天去私の精神に基づいた提示）
-    renderUI(result);
 }
 
-function renderUI(result) {
-    // 緊張度を画面下のインジケーターに反映
+function renderUI(result, assets) {
     tensionSpan.innerText = result.tension.toFixed(2);
 
     if (result.mode === "SILENCE") {
-        outputDiv.innerHTML = `<span style="color: #555;">（数理的沈黙が選択されました）</span>`;
+        outputDiv.innerHTML = `<span style="color: #555;">（数理的沈黙）</span>`;
     } else {
+        // 多通貨ポートフォリオの表示
+        let assetHTML = `<div style="color: #d4af37; margin-top: 10px; font-size: 0.85rem;">`;
+        assetHTML += `<div>LOGOS: ${assets.LOGOS}</div>`;
+        assetHTML += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; opacity: 0.7; font-size: 0.7rem; margin-top: 5px;">`;
+        assetHTML += `<span>JPY: ¥${assets.JPY}</span><span>USD: $${assets.USD}</span>`;
+        assetHTML += `<span>BTC: ₿${assets.BTC}</span><span>ETH: Ξ${assets.ETH}</span>`;
+        assetHTML += `<span>MATIC: ${assets.MATIC}</span><span>EUR: €${assets.EUR}</span>`;
+        assetHTML += `</div></div>`;
+
         outputDiv.innerHTML = `
             <div>${result.output}</div>
-            <div style="font-size: 0.8rem; margin-top: 12px; color: #d4af37; opacity: 0.6;">
-                Generated: ${result.mintedValue} LOGOS / Total: ${sessionTotalValue.toFixed(4)}
-            </div>
+            ${assetHTML}
         `;
     }
 }
 
-// 入力イベントリスナー
 inputField.addEventListener('keypress', (e) => {
     if (e.key === 'Enter' && inputField.value.trim() !== '') {
         handleCommand(inputField.value);
-        inputField.value = ''; // 入力後は更地に戻す
+        inputField.value = '';
     }
 });
